@@ -130,14 +130,16 @@ class Component {
         this.editBtn.onclick = function() {
             self.nameInput.contentEditable = 'true';
             self.nameInput.focus();
-            var range = document.createRange()
-            var sel = window.getSelection()
+            var range = document.createRange();
+            var sel = window.getSelection();
 
-            range.setStart(self.nameInput.childNodes[0], self.nameInput.childNodes[0].length)
-            range.collapse(true)
+            let element = self.nameInput.childNodes[0] ?? self.nameInput;
+            let offset = self.nameInput.childNodes[0]?.length ?? 0;
+            range.setStart(element, offset);
+            range.collapse(true);
 
-            sel.removeAllRanges()
-            sel.addRange(range)
+            sel.removeAllRanges();
+            sel.addRange(range);
         };
     };
 
@@ -170,6 +172,14 @@ class Component {
 
     getConfig() {
         return (currentCfg[this.dataKey] || []).find(obj => obj['id'] == this.id) || null;
+    };
+
+    getFromConfig(key, defaultValue = null) {
+        let cfg = this.getConfig();
+        if (!(key in cfg) || !cfg[key]) {
+            cfg[key] = defaultValue;
+        }
+        return cfg[key];
     };
 };
 
@@ -377,6 +387,7 @@ class VirtualDeviceComponent extends Component {
         });
 
         this.mirrorSwitch.onchange = function() {
+            const value = this.checked;
             cfg['m'] = value;
             ws.send(JSON.stringify({vds:[{id:self.id,m:value}]}));
         };
@@ -874,7 +885,7 @@ class PresetComponent extends ExpandableComponent {
             let deleteBtn = listItem.getElementsByClassName('list-item-delete-btn')[0];
 
             deleteBtn.onclick = function() {
-                let ips = self.getConfig()['ips']; // TODO: error handling
+                let ips = self.getFromConfig('ips', []);
                 const index = ips.indexOf(ip);
                 if (index > -1) {
                     console.log(index);
@@ -892,7 +903,7 @@ class PresetComponent extends ExpandableComponent {
             let addBtn = listItem.getElementsByClassName('list-item-add-btn')[0];
 
             addBtn.onclick = function() {
-                let ips = self.getConfig()['ips']; // TODO: error handling
+                let ips = self.getFromConfig('ips', []);
                 ips.push(ip);
 
                 ws.send(JSON.stringify({prsts:[{id:self.id,ips:ips}]}));
@@ -995,7 +1006,7 @@ class PlaylistComponent extends ExpandableComponent {
             let deleteBtn = listItem.getElementsByClassName('list-item-delete-btn')[0];
 
             deleteBtn.onclick = function() {
-                let pIds = self.getConfig()['pIds']; // TODO: error handling
+                let pIds = self.getFromConfig('pIds', []);
                 const index = pIds.indexOf(pId);
                 if (index > -1) {
                     console.log(index);
@@ -1013,7 +1024,7 @@ class PlaylistComponent extends ExpandableComponent {
             let addBtn = listItem.getElementsByClassName('list-item-add-btn')[0];
 
             addBtn.onclick = function() {
-                let pIds = self.getConfig()['pIds']; // TODO: error handling
+                let pIds = self.getFromConfig('pIds', []);
                 pIds.push(pId);
 
                 ws.send(JSON.stringify({pllsts:[{id:self.id,pIds:pIds}]}));

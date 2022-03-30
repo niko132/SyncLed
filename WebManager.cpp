@@ -30,11 +30,14 @@ void ESPWebManager::begin() {
     });
 
     // send a file when /index is requested
-    _server.on("/index1", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/index1.html");
+    _server.on("/index", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/index.html");
     });
-    _server.on("/index1.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/index1.css");
+    _server.on("/index.js", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/index.js");
+    });
+    _server.on("/index.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/index.css");
     });
 
     _server.on("/grapick.min.js", HTTP_ANY, [](AsyncWebServerRequest *request) {
