@@ -1,0 +1,1 @@
+"C:\Users\Niko\AppData\Local\Arduino15\packages\esp8266\tools\python3\3.7.2-post1\python3.exe" "C:\Users\Niko\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.0.2\tools\espota.py" -i 192.168.178.111 -f "C:\Users\Niko\AppData\Local\Temp\arduino_build_737907\LedSyncTest.ino.bin"

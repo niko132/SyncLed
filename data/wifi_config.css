@@ -1,0 +1,126 @@
+body {
+    font-family: 'Noto Sans';
+    font-size: 0.9em;
+    margin: 0;
+    background-color: #16161c;
+    padding: 24px;
+    color: white;
+}
+
+.network-list-container {
+    background-color: #223;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    max-width: 1000px;
+    border-radius: 24px;
+    box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
+}
+
+.network-list-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 24px 24px 0px 24px;
+}
+
+.network-list-header-title {
+    font-weight: bold;
+    font-size: 18;
+}
+
+.network-list-header-refresh-btn {
+    background: url(data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzIgMzIiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiPjxwYXRoIGQ9Ik0yOCAxNmMtMS4yMTkgMC0xLjc5Ny44NTktMiAxLjc2NkMyNS4yNjkgMjEuMDMgMjIuMTY3IDI2IDE2IDI2Yy01LjUyMyAwLTEwLTQuNDc4LTEwLTEwUzEwLjQ3NyA2IDE2IDZjMi4yNCAwIDQuMjk1Ljc1MyA1Ljk2IDJIMjBhMiAyIDAgMCAwIDAgNGg2YTIgMiAwIDAgMCAyLTJWNGEyIDIgMCAwIDAtNCAwdi41MThBMTMuOTA0IDEzLjkwNCAwIDAgMCAxNiAyQzguMjY4IDIgMiA4LjI2OCAyIDE2czYuMjY4IDE0IDE0IDE0YzkuOTc5IDAgMTQtOS41IDE0LTExLjg3NUMzMCAxNi42NzIgMjguOTM4IDE2IDI4IDE2eiIgZmlsbD0iI2ZmZmZmZiIgY2xhc3M9ImZpbGwtMDAwMDAwIj48L3BhdGg+PC9zdmc+);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: none;
+}
+
+.divider {
+    width: 100%;
+    height: 2px;
+    background-color: #fff8;
+    margin: 16px 0px;
+}
+
+.network-list {
+    padding: 0px 24px 24px 24px;
+}
+
+.network-list-item {
+    padding: 8px 0px;
+    display: grid;
+    grid-template-columns: 40% 20% 20% 20%;
+    align-items: center;
+}
+
+.network-list-item-unencrypted {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CgogPGc+CiAgPHRpdGxlPmJhY2tncm91bmQ8L3RpdGxlPgogIDxyZWN0IGZpbGw9Im5vbmUiIGlkPSJjYW52YXNfYmFja2dyb3VuZCIgaGVpZ2h0PSI0MDIiIHdpZHRoPSI1ODIiIHk9Ii0xIiB4PSItMSIvPgogPC9nPgogPGc+CiAgPHRpdGxlPkxheWVyIDE8L3RpdGxlPgogIDxwYXRoIGZpbGw9IiNmZmZmZmYiIGlkPSJzdmdfMSIgZD0ibTQsOGwwLC0yYTYsNiAwIDEgMSAxMiwwbC0zLDBsMCwybDQsMGEyLDIgMCAwIDEgMiwybDAsOGEyLDIgMCAwIDEgLTIsMmwtMTQsMGEyLDIgMCAwIDEgLTIsLTJsMCwtOGMwLC0xLjEgMC45LC0yIDIsLTJsMSwwem01LDYuNzNsMCwyLjI3bDIsMGwwLC0yLjI3YTIsMiAwIDEgMCAtMiwwem0tMiwtOC43M2wwLDJsNiwwbDAsLTJhMywzIDAgMCAwIC02LDB6Ii8+CiA8L2c+Cjwvc3ZnPg==);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: none;
+}
+
+.network-list-item-encrypted {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CgogPGc+CiAgPHRpdGxlPmJhY2tncm91bmQ8L3RpdGxlPgogIDxyZWN0IGZpbGw9Im5vbmUiIGlkPSJjYW52YXNfYmFja2dyb3VuZCIgaGVpZ2h0PSI0MDIiIHdpZHRoPSI1ODIiIHk9Ii0xIiB4PSItMSIvPgogPC9nPgogPGc+CiAgPHRpdGxlPkxheWVyIDE8L3RpdGxlPgogIDxwYXRoIGZpbGw9IiNmZmZmZmYiIGlkPSJzdmdfMSIgZD0ibTQsOGwwLC0yYTYsNiAwIDEgMSAxMiwwbDAsMmwxLDBhMiwyIDAgMCAxIDIsMmwwLDhhMiwyIDAgMCAxIC0yLDJsLTE0LDBhMiwyIDAgMCAxIC0yLC0ybDAsLThjMCwtMS4xIDAuOSwtMiAyLC0ybDEsMHptNSw2LjczbDAsMi4yN2wyLDBsMCwtMi4yN2EyLDIgMCAxIDAgLTIsMHptLTIsLTguNzNsMCwybDYsMGwwLC0yYTMsMyAwIDAgMCAtNiwweiIvPgogPC9nPgo8L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: none;
+}
+
+.network-list-item-connect-btn {
+    border: 2px solid #23cc23;
+    border-radius: 9999px;
+    background-color: #fff1;
+    padding: 0;
+    width: 96px;
+    height: 36px;
+    color: #23cc23;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    margin: 50% auto;
+    padding: 12px 20px;
+    width: 80%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content > * {
+    margin: 8px;
+}
+
+.modal-content > *:not(:last-child) {
+    width: 100%;
+}

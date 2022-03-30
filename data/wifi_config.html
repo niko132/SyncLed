@@ -1,0 +1,117 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet">
+        <link rel="stylesheet" href="wifi_config.css">
+    </head>
+    <html><head>
+        <link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet">
+        <link rel="stylesheet" href="wifi_config.css">
+    </head>
+    <body>
+        <div class="network-list-container">
+            <div class="network-list-header">
+                <span class="network-list-header-title">Networks</span>
+                <button id="network-list-refresh-btn" class="network-list-header-refresh-btn"></button>
+            </div>
+            <div class="divider"></div>
+            <div id="network-list" class="network-list">
+
+            </div>
+        </div>
+        <div id="modal" class="modal">
+            <div id="modal-content" class="modal-content network-list-container">
+                <span id="modal-content-ssid">Network SSID</span>
+                <input type="password" id="modal-content-password">
+                <button id="modal-content-connect-btn" class="network-list-item-connect-btn">Connect</button>
+            </div>
+        </div>
+    </body>
+    <script>
+const host = window.location.hostname || '4.3.2.1';
+var ws = new WebSocket(`ws://${host}/ws/wifi_config`);
+
+ws.onopen = function() {
+    console.log("ws opened");
+
+    ws.send(JSON.stringify({op:"scan"}));
+};
+
+ws.onmessage = function(evt) {
+    console.log("ws message");
+    console.log(evt.data);
+
+    const networkListElement = document.getElementById('network-list');
+    networkListElement.replaceChildren();
+
+    const networks = JSON.parse(evt.data);
+    networks.sort((a, b) => (a['rssi'] < b['rssi']) ? 1 : -1);
+
+    for (var i = 0; i < networks.length; i++) {
+        const network = networks[i];
+        console.log(network);
+
+        const ssid = network['ssid'];
+        const rssi = network['rssi'];
+        const enc = network['enc'];
+
+        const networkItemElement = document.createElement('div');
+        networkItemElement.classList.add('network-list-item');
+        networkListElement.appendChild(networkItemElement);
+
+        const networkItemSSIDElement = document.createElement('span');
+        networkItemSSIDElement.innerHTML = ssid;
+        networkItemElement.appendChild(networkItemSSIDElement);
+
+        const networkItemRSSIElement = document.createElement('span');
+        networkItemRSSIElement.innerHTML = rssi + ' dBm';
+        networkItemElement.appendChild(networkItemRSSIElement);
+
+        const networkItemEncElement = document.createElement('div');
+        if (enc == 7) {
+            // open
+            networkItemEncElement.classList.add('network-list-item-unencrypted');
+        } else {
+            networkItemEncElement.classList.add('network-list-item-encrypted');
+        }
+        networkItemElement.appendChild(networkItemEncElement);
+
+        const networkItemConnectButton = document.createElement('button');
+        networkItemConnectButton.innerHTML = 'Connect';
+        networkItemConnectButton.classList.add('network-list-item-connect-btn');
+        networkItemConnectButton.onclick = function() {
+            const modalElement = document.getElementById('modal');
+            const modalSsidElement = document.getElementById('modal-content-ssid');
+            const modalPasswordElement = document.getElementById('modal-content-password');
+            const modalConnectButton = document.getElementById('modal-content-connect-btn');
+
+            modalSsidElement.innerHTML = ssid;
+            modalConnectButton.onclick = function() {
+                const ssid = modalSsidElement.innerHTML;
+                const password = modalPasswordElement.value;
+                ws.send(JSON.stringify({op:"connect",ssid:ssid,pass:password}));
+
+                modalElement.style.display = 'none';
+            };
+            modalElement.style.display = 'block';
+        };
+        networkItemElement.appendChild(networkItemConnectButton);
+    }
+
+    /*
+    setTimeout(function() {
+        ws.send(JSON.stringify({op:"connect",ssid:"HUAWEI-1047G0",pass:"94384322823429699220"}));
+    }, 10000);
+    */
+};
+
+ws.onclose = function() {
+    console.log("ws closed");
+};
+
+
+document.getElementById('network-list-refresh-btn').onclick = function() {
+    console.log('Refreshing...');
+    ws.send(JSON.stringify({op:"scan"}));
+};
+    </script>
+</html>

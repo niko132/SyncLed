@@ -1,0 +1,48 @@
+.vd {
+    display: flex;
+    flex-direction: column;
+    margin: 30px;
+}
+
+input[type=range] {
+   appearance: none;
+   width: 400px;
+   margin: 0;
+   background: linear-gradient(#ddd, #ddd) no-repeat center;
+   background-origin: content-box;
+   background-size: 100% 2px;
+   pointer-events: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.multi-range {
+   position: relative;
+   height: 26px;
+}
+
+.multi-range > input[type=range] {
+    position: absolute;
+}
+
+.multi-range > input[type=range]:nth-child(2) {
+    background: none;
+}
+
+
+
+.color-picker {
+   position: relative;
+   height: 26px;
+}
+
+.color-picker > input[type=range] {
+    position: absolute;
+}
+
+.color-picker > input[type=range]:nth-child(n+2) {
+    background: none;
+}

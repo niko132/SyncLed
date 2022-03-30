@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Noto Sans" rel="stylesheet">
+        <link rel="stylesheet" href="index2.css">
+        <script type="text/javascript" src="index1.js"></script>
+
+        <link rel="stylesheet" href="grapick.min.css">
+        <script src="grapick.min.js"></script>
+    </head>
+    <body>
+        <div id="content">
+            <div class="header">
+                <h1 class="header-title">SyncLED</h1>
+                <button id="power-btn" class="power-btn vd-btn-on" onclick="toggleOnOff(this)"></button>
+            </div>
+            <div id="preset-chips" class="chip-container">
+            </div>
+            <div id="vds-div">
+                <div id="vds-list">
+                </div>
+                <button class="vd-add-btn" onclick="addVD()"></button>
+            </div>
+            <div id="palettes-div">
+                <div id="palettes-list">
+                </div>
+                <button class="vd-add-btn" onclick="addPalette()"></button>
+            </div>
+            <div id="presets-div">
+                <div id="presets-list">
+                </div>
+                <button class="vd-add-btn" onclick="addPreset()"></button>
+            </div>
+            <div id="playlists-div">
+                <div id="playlists-list">
+                </div>
+                <button class="vd-add-btn" onclick="addPlaylist()"></button>
+            </div>
+            <div class="footer">
+                <button class="footer-btn footer-btn-devs" onclick="navigation(0)"></button>
+                <button class="footer-btn footer-btn-palettes" onclick="navigation(1)"></button>
+                <button class="footer-btn footer-btn-presets" onclick="navigation(2)"></button>
+                <button class="footer-btn footer-btn-settings" onclick="navigation(3)"></button>
+            </div>
+        </div>
+    </body>
+</html>
