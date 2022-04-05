@@ -16,6 +16,7 @@
 #include "PresetManager.h"
 #include "StorageManager.h"
 #include "WebManager.h"
+#include "OverlayManager.h"
 
 #include "WiFiManager.h"
 
@@ -101,6 +102,7 @@ void setup() {
     VirtualDeviceManager.begin();
     PresetManager.begin();
     WebManager.begin();
+    OverlayManager.begin();
 
     Alexa.begin();
 

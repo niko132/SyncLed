@@ -1,5 +1,7 @@
 #include "VirtualDeviceManager.h"
 
+#include "OverlayManager.h"
+
 ESPVirtualDeviceManager::ESPVirtualDeviceManager() : _strip(LED_COUNT) {
 
 }
@@ -67,6 +69,11 @@ void ESPVirtualDeviceManager::update() {
                 _colors[i * 3 + 2] = BRI_LOOKUP[_colors[i * 3 + 2]];
             }
         }
+
+
+        // apply the overlay right before we show the leds
+        OverlayManager.update(_colors, LED_COUNT);
+
 
         for (size_t i = 0; i < LED_COUNT; i++) {
             RgbColor color(_colors[i*3], _colors[i*3+1], _colors[i*3+2]);

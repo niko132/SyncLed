@@ -7,7 +7,7 @@
 
 #include "VirtualDevice.h"
 
-#define LED_COUNT 180
+#define LED_COUNT 232
 #define UPDATE_MILLIS 17
 
 typedef std::map<unsigned long, VirtualDevice*> vd_map;
