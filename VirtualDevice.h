@@ -31,6 +31,8 @@ class VirtualDevice {
 
         void setPaletteId(unsigned long id);
 
+        void updateConfig(uint8_t *leds, size_t count);
+
         void fromJson(JsonObject &root);
         void toJson(JsonObject &root);
 };

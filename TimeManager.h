@@ -2,6 +2,8 @@
 #define TIME_MANAGER_H
 
 #include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 #include "Utils.h"
 
 #define TIME_SYNC_INTERVAL 10000
@@ -18,7 +20,11 @@ class ESPTimeManager {
 		bool _synced = false;
 		unsigned long _beginMillis = 0;
 
+		WiFiUDP _ntpUdp;
+        NTPClient _timeClient;
+
 	public:
+		ESPTimeManager();
 		void begin();
 		void update();
 		bool sendTimeSyncRequest();
@@ -27,6 +33,10 @@ class ESPTimeManager {
 		bool handlePacket(Reader &reader, IPAddress ip, unsigned long receiveMillis);
 
 		bool canBeVisible();
+
+		int getHours();
+		int getMinutes();
+		int getSeconds();
 };
 
 extern ESPTimeManager TimeManager;

@@ -35,6 +35,138 @@ void setup() {
     Serial.println("Booting");
 
 
+    // position calculation util
+    /*
+    float startX = 48.75;
+    float startY = 0.0;
+
+    float offset = (17.5 - 7 * 100.0 / 60.0) / 2.0;
+
+    float xFact[] = {0.0, -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 0.0};
+    float yFact[] = {-1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0};
+
+    float xFact1[] = {0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0};
+    float yFact1[] = {-1.0, 0.0, 1.0, 0.0, 1.0, 0.0, -1.0};
+
+    for (int i = 0; i < 7; i++) {
+        float currXFac = xFact1[i];
+        float currYFac = yFact1[i];
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+
+        for (int j = 0; j < 8; j++) {
+            float x = startX;
+            float y = startY;
+
+            Serial.print(y);
+            Serial.print(", ");
+
+            if (j == 7) {
+                break;
+            }
+
+            startX += 100.0 / 60.0 * currXFac;
+            startY += 100.0 / 60.0 * currYFac;
+        }
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+    }
+
+    startX -= 5.0;
+
+    for (int i = 0; i < 7; i++) {
+        float currXFac = xFact1[i];
+        float currYFac = yFact1[i];
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+
+        for (int j = 0; j < 8; j++) {
+            float x = startX;
+            float y = startY;
+
+            Serial.print(y);
+            Serial.print(", ");
+
+            if (j == 7) {
+                break;
+            }
+
+            startX += 100.0 / 60.0 * currXFac;
+            startY += 100.0 / 60.0 * currYFac;
+        }
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+    }
+
+    Serial.print("-2.0, -5.0, -5.0, -2.0, 2.0, 5.0, 5.0, 2.0, ");
+
+    startX = -startX;
+
+    for (int i = 0; i < 7; i++) {
+        float currXFac = xFact1[i];
+        float currYFac = yFact1[i];
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+
+        for (int j = 0; j < 8; j++) {
+            float x = startX;
+            float y = startY;
+
+            Serial.print(y);
+            Serial.print(", ");
+
+            if (j == 7) {
+                break;
+            }
+
+            startX += 100.0 / 60.0 * currXFac;
+            startY += 100.0 / 60.0 * currYFac;
+        }
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+    }
+
+    startX -= 5.0;
+
+    for (int i = 0; i < 7; i++) {
+        float currXFac = xFact1[i];
+        float currYFac = yFact1[i];
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+
+        for (int j = 0; j < 8; j++) {
+            float x = startX;
+            float y = startY;
+
+            Serial.print(y);
+            Serial.print(", ");
+
+            if (j == 7) {
+                break;
+            }
+
+            startX += 100.0 / 60.0 * currXFac;
+            startY += 100.0 / 60.0 * currYFac;
+        }
+
+        startX += currXFac * offset;
+        startY += currYFac * offset;
+    }
+
+
+    Serial.println();
+    Serial.println("Finished");
+    */
+
+
+
     /*
     WiFi.disconnect();
     // WiFi.config(ip, gateway, subnet);
@@ -87,7 +219,7 @@ void setup() {
             Serial.println("End Failed");
         }
     });
-    ArduinoOTA.begin();
+    ArduinoOTA.begin(true);
 
     delay(1000);
 
@@ -99,7 +231,7 @@ void setup() {
     NetworkManager.begin();
     ConnectivityManager.begin();
     TimeManager.begin();
-    VirtualDeviceManager.begin();
+    // VirtualDeviceManager.begin();
     PresetManager.begin();
     WebManager.begin();
     OverlayManager.begin();
@@ -107,6 +239,7 @@ void setup() {
     Alexa.begin();
 
     StorageManager.loadConfig();
+    VirtualDeviceManager.begin();
 
 
     Serial.println("Setup");

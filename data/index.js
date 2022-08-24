@@ -1,10 +1,10 @@
-const EFFECT_IDS = [1, 2, 3, 4, 5, 6];
-const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Firework'];
+const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 1000, 1001];
+const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Firework', 'Firework2D', 'GIF 2D', 'Receive', 'Receive2D'];
 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
 
-const host = window.location.hostname || '192.168.3.9';
+const host = window.location.hostname || '192.168.3.11';
 var ws;
 
 var currentCfg = {};
@@ -16,6 +16,10 @@ const EVENT_PALETTES_CHANGED = 'event_palettes_changed';
 const EVENT_PRESETS_CHANGED = 'event_presets_changed';
 const EVENT_ACTIVE_DEVICES_CHANGED = 'event_active_devices_changed';
 const EVENT_PLAYLISTS_CHANGED = 'event_playlists_changed';
+const EVENT_OVERLAY_CHANGED = 'event_overlay_changed';
+const EVENT_SETTINGS_CHANGED = 'event_settings_changed';
+
+const EVENT_LIVE_DATA = 'event_live_data';
 
 
 
@@ -301,22 +305,50 @@ class VirtualDeviceComponent extends Component {
     static IDS_KEY = 'vdIds';
     static DATA_KEY = 'vds';
 
-    static EFFECT_IDS = [1, 2, 3, 4, 5, 6];
-    static EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Firework'];
-
     constructor(id, parent) {
         super(id, parent, VirtualDeviceComponent.EVENT_NAME, VirtualDeviceComponent.IDS_KEY, VirtualDeviceComponent.DATA_KEY);
         this.paletteListener = this.updateUI.bind(this);
         events.addEventListener(EVENT_PALETTES_CHANGED, this.paletteListener);
+
+        this.liveDataListener = this.onLiveData.bind(this);
+        // live data preview on virtual device is disabled
+        // events.addEventListener(EVENT_LIVE_DATA, this.liveDataListener);
     };
 
     destroy() {
         super.destroy();
         events.removeEventListener(EVENT_PALETTES_CHANGED, this.paletteListener);
+        events.removeEventListener(EVENT_LIVE_DATA, this.liveDataListener);
     };
 
     getComponentId() {
         return `vd_${this.id}`;
+    };
+
+    onLiveData() {
+        let element = this.root?.getElementsByClassName('vd')?.[0];
+        let cfg = this.getConfig();
+
+        if (!element || !cfg)
+            return;
+
+        let startIndex = cfg['sI'];
+        let endIndex = cfg['eI'];
+
+        let uint8Array = currentCfg['lD'];
+
+        let bgStr = 'linear-gradient(to right';
+
+        for (let i = startIndex * 3; i < endIndex * 3; i += 3) {
+            const r = uint8Array[i];
+            const g = uint8Array[i + 1];
+            const b = uint8Array[i + 2];
+
+            bgStr += `, rgb(${r},${g},${b})`
+        }
+
+        bgStr += ')';
+        element.style.backgroundImage = bgStr;
     };
 
     updateUI() {
@@ -324,6 +356,8 @@ class VirtualDeviceComponent extends Component {
         if (!cfg) {
             return;
         }
+
+        let numLeds = currentCfg["nLeds"] || 180;
 
         let html = `
         <div id="${this.getComponentId()}">
@@ -339,8 +373,8 @@ class VirtualDeviceComponent extends Component {
                     </span>
                     <label class="grid-two-cols">Index:</label>
                     <span class="multi-range grid-two-cols index-slider-container">
-                        <input type="range" min="0" max="180" value="${cfg['sI']}" class="def-slider dual-slider">
-                        <input type="range" min="0" max="180" value="${cfg['eI']}" class="def-slider dual-slider">
+                        <input type="range" min="0" max="${numLeds}" value="${cfg['sI']}" class="def-slider dual-slider">
+                        <input type="range" min="0" max="${numLeds}" value="${cfg['eI']}" class="def-slider dual-slider">
                         <output class="slider-output"></output>
                     </span>
                     <label class="grid-two-cols">Mirror:</label>
@@ -376,7 +410,7 @@ class VirtualDeviceComponent extends Component {
             ws.send(JSON.stringify({vds:[{id:self.id,bri:value}]}));
         });
 
-        this.createDualSlider(this.indexSliderContainer, 0, 180, cfg['sI'], cfg['eI'], function() {
+        this.createDualSlider(this.indexSliderContainer, 0, numLeds, cfg['sI'], cfg['eI'], function() {
             const value = parseInt(this.value);
             cfg['sI'] = value;
             ws.send(JSON.stringify({vds:[{id:self.id,sI:value}]}));
@@ -398,7 +432,7 @@ class VirtualDeviceComponent extends Component {
             ws.send(JSON.stringify({vds:[{id:self.id,pId:value}]}));
         });
 
-        this.createDropdown(this.effectDD, VirtualDeviceComponent.EFFECT_IDS, VirtualDeviceComponent.EFFECT_NAMES, cfg['eId'], function() {
+        this.createDropdown(this.effectDD, EFFECT_IDS, EFFECT_NAMES, cfg['eId'], function() {
             const value = parseInt(this.value);
             cfg['eId'] = value;
             ws.send(JSON.stringify({vds:[{id:self.id,eId:value}]}));
@@ -420,9 +454,11 @@ class VirtualDeviceComponent extends Component {
         let eId = cfg['eId'];
         let eD = cfg['eD'] || {};
 
+        let numLeds = currentCfg["nLeds"] || 180;
+
         let self = this;
 
-        if (eId >= 1 && eId < 6) { // all cyclic effects
+        if (eId >= 1 && eId < 100) { // all cyclic effects
             const defD = (eD['d'] || 2000) / 100.0;
             const defSP = (eD['sP'] || 0) * 100;
             const defEP = (eD['eP'] || 1.0) * 100;
@@ -452,7 +488,7 @@ class VirtualDeviceComponent extends Component {
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{eP:value}}]}));
             });
             parent.appendChild(posSlider);
-        } else if (eId == 6) { // all simulation effects
+        } else if (eId >= 100) { // all simulation effects
             const defS = (eD['s'] || 1.0) * 10;
 
             const speedText = document.createElement('label');
@@ -475,12 +511,37 @@ class VirtualDeviceComponent extends Component {
             sizeText.innerHTML = 'Size:';
             parent.appendChild(sizeText);
 
-            const sizeSlider = this.createSlider(1, 180, defS, function() {
+            const sizeSlider = this.createSlider(1, numLeds, defS, function() {
                 const value = parseInt(this.value);
                 eD['s'] = value;
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{s:value}}]}));
             });
             parent.appendChild(sizeSlider);
+        } else if (eId == 7) {
+            const sA = eD['sA'] || 0.0;
+            const rPS = eD['rPS'] * 10.0 || 0.0;
+
+            const angleText = document.createElement('label');
+            angleText.innerHTML = 'Start Angle:';
+            parent.appendChild(angleText);
+
+            const angleSlider = this.createSlider(0, 359, sA, function() {
+                const value = parseInt(this.value);
+                eD['sA'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{sA:value}}]}));
+            });
+            parent.appendChild(angleSlider);
+
+            const rotText = document.createElement('label');
+            rotText.innerHTML = 'Rotations per second:';
+            parent.appendChild(rotText);
+
+            const rotSlider = this.createSlider(0, 20, rPS, function() {
+                const value = parseInt(this.value) / 10.0;
+                eD['rPS'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{rPS:value}}]}));
+            });
+            parent.appendChild(rotSlider);
         }
     };
 
@@ -1049,7 +1110,7 @@ let palettesContainer;
 let presetsContainer;
 let playlistsContainer;
 
-
+let liveWs;
 
 document.addEventListener("DOMContentLoaded", function(){
     console.log("DOM loaded");
@@ -1065,11 +1126,267 @@ document.addEventListener("DOMContentLoaded", function(){
     palettesContainer = new ComponentContainer(palettesElement, PaletteComponent);
     presetsContainer = new ComponentContainer(presetsElement, PresetComponent);
     playlistsContainer = new ComponentContainer(playlistsElement, PlaylistComponent);
+    initOverlay();
+    initSettings();
 
     navigation(0);
 
     init();
 });
+
+function initOverlay() {
+    events.addEventListener(EVENT_OVERLAY_CHANGED, initOverlay);
+
+    let transitionSelect = document.getElementById('overlay-transition-select');
+    let transitionDuration = document.getElementById('overlay-transition-duration');
+    let dataSelect = document.getElementById('overlay-data-select');
+
+    let countdownMinutes = document.getElementById('overlay-countdown-minutes');
+    let countdownSeconds = document.getElementById('overlay-countdown-seconds');
+    let startBtn = document.getElementById('overlay-start-btn');
+
+    transitionSelect.onchange = function() {
+        let id = parseInt(this.value);
+        ws.send(JSON.stringify({tId:id}));
+    }
+
+    dataSelect.onchange = function() {
+        let id = parseInt(this.value);
+        ws.send(JSON.stringify({oId:id}));
+    }
+
+    let transitionDurationChanged = function() {
+        let duration = parseInt(this.value);
+        ws.send(JSON.stringify({tD:{dMs:duration}}));
+    }
+
+    transitionDuration.addEventListener('focusout', transitionDurationChanged);
+    transitionDuration.onchange = transitionDurationChanged;
+
+
+    startBtn.onclick = function() {
+        let mins = parseInt(countdownMinutes.value);
+        let secs = parseInt(countdownSeconds.value);
+        let valueMs = (mins * 60 + secs) * 1000;
+
+        ws.send(JSON.stringify({oD:{vMs:valueMs}}));
+    }
+
+
+    transitionSelect.value = currentCfg['tId'] || 1;
+    dataSelect.value = currentCfg['oId'] || 1;
+}
+
+function initSettings() {
+    let numLedsInput = document.getElementById('settings-num-leds');
+
+    let numLedsChanged = function() {
+        let numLeds = parseInt(this.value);
+        ws.send(JSON.stringify({nLeds:numLeds}));
+    }
+
+    numLedsInput.addEventListener('focusout', numLedsChanged);
+    numLedsInput.onChange = numLedsChanged;
+
+
+
+    let lineChart;
+
+    let onChartChange = function() {
+        let data = [];
+        for (index in lineChart.data.datasets[0].data) {
+            entry = lineChart.data.datasets[0].data[index];
+
+            data.push({
+                t: entry.x,
+                b: entry.y / 100.0
+            });
+        }
+
+        ws.send(JSON.stringify({briCtrls: data}));
+    }
+
+    let data = [
+        {
+            x: 0,
+            y: 50
+        },
+        {
+            x: 24,
+            y: 50
+        }
+    ];
+
+    let chart = document.getElementById('bri-control-chart');
+    let gradient = chart.getContext('2d').createLinearGradient(0, 0, 0, 450);
+
+    gradient.addColorStop(0, 'rgba(255, 0,0, 0.5)');
+    gradient.addColorStop(0.5, 'rgba(255, 0, 0, 0.25)');
+    gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+    const config = {
+        responsive: true,
+        plugins:{
+            legend: {
+                display: false
+            },
+            tooltip: {
+                displayColors: false,
+                callbacks: {
+                    title: function(context) {
+                        let val = context[0].parsed.x;
+                        let hour = Math.floor(val);
+                        let frac = val - hour;
+                        let min = Math.floor(frac * 60);
+
+                        let str = `${hour}:${(min).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false})}`;
+        
+                        return str;
+                    },
+                    label: function(context) {
+                        let label = `${Math.round(context.parsed.y)}%`;
+                        return label;
+                    }
+                }
+            },
+            dragData: {        
+                round: 1,
+                dragX: true,
+                showTooltip: false,
+                onDragStart:function (e, datasetIndex, index, value) {
+                },
+                onDrag: function (e, datasetIndex, index, value) {
+                    e.target.style.cursor = 'grabbing'
+                    //console.log("Drag Value: ", value.x)
+
+                    let prevVal = lineChart.data.datasets[datasetIndex].data[index - 1]?.x ?? -1.0;
+                    let nextVal = lineChart.data.datasets[datasetIndex].data[index + 1]?.x ?? 25.0;
+
+                    return value.x > prevVal && value.x < nextVal;
+                },
+                onDragEnd: function (e, datasetIndex, index, value) {
+                    e.target.style.cursor = 'default'
+                    onChartChange();
+                },
+            },
+        },
+        scales: {
+            x:{
+                type: 'linear',
+                min: 0,
+                max: 24,
+                ticks: {
+                    stepSize: 1,
+                    color: '#ddd',
+                    callback(value, index) {
+                        let str = `${value}:00`;
+                        return index % 2 == 0 ? str : '';
+                    }
+                },
+                grid: {
+                    color: '#666'
+                }
+            },
+            y:{
+                beginAtZero: true,
+                steps: 1,
+                stepValue: 1,
+                max: 100,
+                ticks: {
+                    color: '#ddd',
+                    callback(value) {
+                        return value + '%';
+                    }
+                },
+                grid: {
+                    color: '#666'
+                }
+            },
+        },
+        onClick: function (element, dataAtClick) {
+            let dataIndex = dataAtClick[0]?.index;
+            if (dataIndex !== undefined) {
+                // handle delete
+                this.data.datasets[0].data.splice(dataIndex, 1);
+            } else {
+                let scaleRef, valueX, valueY;
+                for (var scaleKey in this.scales) {
+                    scaleRef = this.scales[scaleKey];
+                    if (scaleRef.isHorizontal()) {
+                        valueX = scaleRef.getValueForPixel(element.native.offsetX);
+                    } else {
+                        valueY = scaleRef.getValueForPixel(element.native.offsetY);
+                    }
+                }
+
+                this.data.datasets[0].data.sort(function(a, b) {
+                    return a.x - b.x;
+                });
+
+                var index = 0;
+                while (index < this.data.datasets[0].data.length && this.data.datasets[0].data[index].x < valueX) {
+                    index += 1;
+                }
+
+                this.data.datasets[0].data.splice(index, 0, {
+                    x: valueX,
+                    y: valueY
+                });
+            }
+            this.update('none');
+            onChartChange();
+        },
+    };
+
+    
+    lineChart = new Chart(chart, {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    data: data,
+                    backgroundColor: '#AD35BA',
+                    borderColor: '#AD35BA',
+                    borderWidth: 4,
+                    pointHitRadius: 10,
+                    pointRadius: 4,
+                    pointHoverRadius: 8,
+                    pointBorderColor: "#fff",
+                    pointBackgroundColor: "rgba(173, 53, 186, 0.1)",
+                }
+            ]
+        },
+        options: config
+    });
+
+
+    let useBriControlCheckbox = document.getElementById('settings-use-bri-control');
+    useBriControlCheckbox.onchange = function(e) {
+        let value = e.target.checked;
+        chart.style.display = value ? 'block' : 'none';
+
+        currentCfg['briCtrl'] = value;
+        ws.send(JSON.stringify({briCtrl: value}));
+    }
+
+    events.addEventListener(this.EVENT_SETTINGS_CHANGED, function() {
+        useBriControlCheckbox.checked = currentCfg['briCtrl'];
+        chart.style.display = currentCfg['briCtrl'] ? 'block' : 'none';
+
+        let chartData = [];
+        for (index in currentCfg['briCtrls']) {
+            let entry = currentCfg['briCtrls'][index];
+
+            chartData.push({
+                x: entry.t,
+                y: entry.b * 100.0
+            });
+        }
+
+        lineChart.data.datasets[0].data = chartData;
+        lineChart.update();
+    });
+}
 
 function init() {
     ws = new WebSocket(`ws://${host}/ws`);
@@ -1096,6 +1413,14 @@ function init() {
         const pllstIds = cfg['pllstIds'];
         const pllsts = cfg['pllsts'];
         const on = cfg['on'] || false;
+
+        const tId = cfg['tId'] || 0;
+        const oId = cfg['oId'] || 0;
+
+        const nLeds = cfg['nLeds'] || 0;
+
+        const briCtrl = cfg['briCtrl'] || false;
+        const briCtrls = cfg['briCtrls'];
 
         if (pIds || ps) {
             currentCfg['pIds'] = pIds || currentCfg['pIds'];
@@ -1130,9 +1455,38 @@ function init() {
             currentCfg['on'] = on;
         }
 
+        if (tId) {
+            currentCfg['tId'] = tId;
+        }
+
+        if (oId) {
+            currentCfg['oId'] = oId;
+        }
+
+        if (tId || oId) {
+            events.dispatchEvent(new Event(EVENT_OVERLAY_CHANGED));
+        }
+
+        if (nLeds) {
+            currentCfg['nLeds'] = nLeds;
+            events.dispatchEvent(new Event(EVENT_VIRTUAL_DEVICES_CHANGED)); // need to update indices
+        }
+
+        if ('briCtrl' in cfg) {
+            currentCfg['briCtrl'] = briCtrl;
+        }
+
+        if (briCtrls) {
+            currentCfg['briCtrls'] = briCtrls;
+        }
+
+        if ('briCtrl' in cfg || briCtrls) {
+            // this.EVENT_... is needed here for some reason
+            events.dispatchEvent(new Event(this.EVENT_SETTINGS_CHANGED));
+        }
+
         console.log("init finished");
 
-        // TODO: update power button
         let powerBtn = document.getElementById('power-btn');
         if (on) {
             powerBtn.classList.remove('vd-btn-off');
@@ -1145,8 +1499,78 @@ function init() {
 
     ws.onclose = function() {
         console.log("ws closed");
+
+        // auto reconnect
+        setTimeout(function() {
+            init();
+        }, 1000);
     };
 };
+
+function toggleLiveData(e) {
+    if (liveWs) {
+        disableLiveData();
+    } else {
+        enableLiveData();
+    }
+
+    const value = !e.classList.contains('vd-btn-on');
+    console.log(value);
+
+    if (value) {
+        e.classList.remove('vd-btn-off');
+        e.classList.add('vd-btn-on');
+    } else {
+        e.classList.remove('vd-btn-on');
+        e.classList.add('vd-btn-off');
+    }
+}
+
+function enableLiveData() {
+    liveWs = new WebSocket(`ws://${host}/ws/live`);
+
+    liveWs.onopen = function() {
+        console.log("liveWs opened");
+    };
+
+    liveWs.onmessage = function(evt) {
+        var msg = evt.data;
+        msg.arrayBuffer().then(buffer => {
+            var uint8Array = new Uint8Array(buffer);
+            currentCfg['lD'] = uint8Array;
+            events.dispatchEvent(new Event(EVENT_LIVE_DATA));
+
+            let gradStr = 'linear-gradient(to right';
+
+            for (let i = 0; i < uint8Array.length; i += 3) {
+                const r = uint8Array[i];
+                const g = uint8Array[i + 1];
+                const b = uint8Array[i + 2];
+
+                gradStr += `, rgb(${r},${g},${b})`
+            }
+
+            gradStr += ')';
+
+            const testGradient = document.getElementsByClassName('header')[0];
+            testGradient.style.backgroundImage = gradStr;
+        });
+    };
+
+    liveWs.onclose = function() {
+        console.log("liveWs closed");
+    };
+};
+
+function disableLiveData() {
+    if (liveWs) {
+        liveWs.close();
+        liveWs = null;
+    }
+
+    // reset the background
+    document.getElementsByClassName('header')[0].style.backgroundImage = 'linear-gradient(to right, #16999E, #4f0b48)';
+}
 
 function generateId(disjunct) {
     if (!disjunct) {
@@ -1216,21 +1640,20 @@ function navigation(val) {
         document.getElementById('palettes-div'),
         document.getElementById('presets-div'),
         document.getElementById('playlists-div'),
+        document.getElementById('overlay-div'),
+        document.getElementById('settings-div')
     ];
 
     const mainElementsVisible = [
-        [true, false, false, false],
-        [false, true, false, false],
-        [false, false, true, true]
+        [true, false, false, false, false, false],
+        [false, true, false, false, false, false],
+        [false, false, true, true, false, false],
+        [false, false, false, false, true, false],
+        [false, false, false, false, false, true]
     ];
 
-    if (val == 3) {
-        window.location.href = 'settings';
-    } else {
-        const currentMainElementsVisible = mainElementsVisible[val];
-
-        for (let i = 0; i < mainElements.length; i++) {
-            mainElements[i].style.display = currentMainElementsVisible[i] ? 'block' : 'none';
-        }
+    const currentMainElementsVisible = mainElementsVisible[val];
+    for (let i = 0; i < mainElements.length; i++) {
+        mainElements[i].style.display = currentMainElementsVisible[i] ? 'block' : 'none';
     }
 };

@@ -9,6 +9,10 @@ class ESPWebManager {
         AsyncWebServer _server;
         AsyncWebSocket _ws;
         AsyncWebSocket _wifiConfigWs;
+        
+        AsyncWebSocket _liveDataWs;
+
+        File _currentFile;
 
     public:
         ESPWebManager();
@@ -19,6 +23,8 @@ class ESPWebManager {
 
         void sendToAllClients(String text);
         void sendToAllWifiConfigClients(String text);
+
+        void sendLiveData(uint8_t *buf, unsigned long length);
 };
 
 extern ESPWebManager WebManager;

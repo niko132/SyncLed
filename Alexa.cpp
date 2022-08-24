@@ -27,7 +27,6 @@ void ESPAlexa::deviceCallback(EspalexaDevice* d) {
     EspalexaDeviceProperty prop = d->getLastChangedProperty();
 
     if (EspalexaDeviceProperty::xy == prop || EspalexaDeviceProperty::hs == prop || EspalexaDeviceProperty::ct == prop) {
-        // TODO: change color
         Serial.println("Alexa change color");
 
         Palette *palette = PaletteManager.getPaletteByName("AlexaPalette");
@@ -61,7 +60,6 @@ void ESPAlexa::deviceCallback(EspalexaDevice* d) {
 
 
 void ESPAlexa::fromJson(JsonObject &root) {
-    // TODO: store name in settings
     _name = root["an"] | _name;
 
     if (_alexaDevice == NULL) {

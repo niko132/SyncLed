@@ -147,7 +147,6 @@ void Playlist::update() {
         Serial.print(" loading preset ");
         Serial.println(presetId);
 
-        // TODO: load preset with presetId
         PresetManager.loadPreset(presetId);
 
         _lastCycleMillis = now;
@@ -324,7 +323,6 @@ void ESPPresetManager::load(unsigned long id, bool notify) {
 }
 
 void ESPPresetManager::update() {
-    // TODO: update only used playlist
     if (_playlists.count(_activePlaylistId) > 0) {
         Playlist *playlist = _playlists[_activePlaylistId];
         if (playlist) {

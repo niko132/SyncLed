@@ -10,6 +10,8 @@
 #define LED_COUNT 232
 #define UPDATE_MILLIS 17
 
+#define LIVE_UPDATE_MILLIS 75
+
 typedef std::map<unsigned long, VirtualDevice*> vd_map;
 typedef vd_map::iterator vd_map_itr;
 
@@ -28,11 +30,17 @@ class ESPVirtualDeviceManager {
         vd_map _virtualDevices;
         uint8_t _colors[LED_COUNT * 3];
         unsigned long _lastUpdateMillis = 0;
+        unsigned long _lastLiveUpdateMillis = 0;
 
         State _state = OFF;
         float _currentFadeBri = 0.0;
 
         bool _useBrightnessCorrection = false;
+
+        bool _useBrightnessControl = false;
+
+        size_t _numBrightnessControlEntries = 0;
+        float *_brightnessControlEntries = nullptr;
 
     public:
         ESPVirtualDeviceManager();

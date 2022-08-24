@@ -30,14 +30,16 @@ VirtualDevice::~VirtualDevice() {
 void VirtualDevice::update(unsigned long delta) {
     Palette *palette = PaletteManager.getPaletteById(_paletteId);
 
+    size_t endIndex = _endIndex < _maxIndex ? _endIndex : _maxIndex;
+
     if (_effect && palette) {
-        _effect->update(&_leds[_startIndex * 3], _endIndex - _startIndex, palette);
+        _effect->update(&_leds[_startIndex * 3], endIndex - _startIndex, palette);
     }
 
     if (_mirror) {
-        for (size_t i = 0; i < (_endIndex - _startIndex) / 2; i++) {
+        for (size_t i = 0; i < (endIndex - _startIndex) / 2; i++) {
             size_t i1 = _startIndex + i;
-            size_t i2 = _endIndex - i - 1;;
+            size_t i2 = endIndex - i - 1;;
             uint8_t rgb[3];
 
             rgb[0] = _leds[i1 * 3];
@@ -55,7 +57,7 @@ void VirtualDevice::update(unsigned long delta) {
     }
 
     // adjust the brightness
-    for (size_t i = _startIndex; i < _endIndex; i++) {
+    for (size_t i = _startIndex; i < endIndex; i++) {
         _leds[i * 3] = (uint8_t)(_bri / 255.0 * _leds[i * 3] + 0.5);
         _leds[i * 3 + 1] = (uint8_t)(_bri / 255.0 * _leds[i * 3 + 1] + 0.5);
         _leds[i * 3 + 2] = (uint8_t)(_bri / 255.0 * _leds[i * 3 + 2] + 0.5);
@@ -74,14 +76,17 @@ void VirtualDevice::setPaletteId(unsigned long id) {
     _paletteId = id;
 }
 
+void VirtualDevice::updateConfig(uint8_t *leds, size_t count) {
+    _leds = leds;
+    _maxIndex = count;
+    _endIndex = count < _endIndex ? count : _endIndex;
+}
+
 void VirtualDevice::fromJson(JsonObject &root) {
     _name = root["n"] | _name;
 
     _startIndex = root["sI"] | _startIndex;
     _endIndex = root["eI"] | _endIndex;
-    if (_endIndex > _maxIndex) {
-        _endIndex = _maxIndex;
-    }
 
     unsigned long effectId = root["eId"] | 0;
     if (effectId) {

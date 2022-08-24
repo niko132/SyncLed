@@ -9,7 +9,16 @@
 #define EFFECT_DOT 4
 #define EFFECT_PING_PONG 5
 
-#define EFFECT_FIREWORK 6
+#define EFFECT_CIRCLE_2D 6
+#define EFFECT_SLIDE_2D 7
+
+#define EFFECT_FIREWORK 100
+
+#define EFFECT_FIREWORK_2D 101
+#define EFFECT_GIF_2D 102
+
+#define EFFECT_RECEIVE 1000
+#define EFFECT_RECEIVE_2D 1001
 
 class ESPEffectManager {
     public:

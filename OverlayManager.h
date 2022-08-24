@@ -7,7 +7,19 @@
 #include <WiFiUdp.h>
 #include <NTPClient.h>
 
+#define OVERLAY_NONE 1
+#define OVERLAY_CLOCK 2
+#define OVERLAY_COUNTDOWN 3
+#define OVERLAY_COUNTUP 4
+
+#define TRANSITION_NONE 1
+#define TRANSITION_FADE 2
+#define TRANSITION_FLOW 3
+
 class SegmentTransition {
+    private:
+        unsigned long _id;
+
     protected:
         size_t _numSegments;
         size_t _ledsPerSegment;
@@ -15,25 +27,29 @@ class SegmentTransition {
         unsigned long _durationMillis;
 
     public:
-        SegmentTransition(size_t numSegments, size_t ledsPerSegment);
+        SegmentTransition(unsigned long id);
+        unsigned long getId();
         virtual void transition(double *brightness, uint8_t *targetSegments, unsigned long deltaMillis);
+
+        virtual void fromJson(JsonObject &root);
+        virtual void toJson(JsonObject &root);
 };
 
 class NoTransition : public SegmentTransition {
     public:
-        NoTransition(size_t numSegments, size_t ledsPerSegment);
+        NoTransition();
         void transition(double *brightness, uint8_t *targetSegments, unsigned long deltaMillis);
 };
 
 class FadeTransition : public SegmentTransition {
     public:
-        FadeTransition(size_t numSegments, size_t ledsPerSegment);
+        FadeTransition();
         void transition(double *brightness, uint8_t *targetSegments, unsigned long deltaMillis);
 };
 
 class FlowTransition : public SegmentTransition {
     public:
-        FlowTransition(size_t numSegments, size_t ledsPerSegment);
+        FlowTransition();
         void transition(double *brightness, uint8_t *targetSegments, unsigned long deltaMillis);
 
         void flowDim(double *brightness, int seg, int startIndex, int endIndex, double fac);
@@ -46,7 +62,7 @@ class OverlayElement {
 
     public:
         OverlayElement(size_t startIndex);
-        virtual void update(uint8_t *colors) = 0;
+        // virtual void update(uint8_t *colors) = 0;
 };
 
 class SevenSegmentElement : public OverlayElement {
@@ -59,8 +75,6 @@ class SevenSegmentElement : public OverlayElement {
         int _number;
         double _brightness[LENGTH];
         unsigned long _lastUpdateMillis;
-
-        SegmentTransition *_transition;
 
         const uint8_t SEGMENTS[10][7] = {
             {1,1,1,0,1,1,1},
@@ -77,7 +91,7 @@ class SevenSegmentElement : public OverlayElement {
 
     public:
         SevenSegmentElement(size_t startIndex);
-        void update(uint8_t *colors);
+        void update(uint8_t *colors, SegmentTransition *transition);
         void setNumber(int number);
 };
 
@@ -95,11 +109,24 @@ class DotElement : public OverlayElement {
 
 
 class DataSource {
+    private:
+        unsigned long _id;
+
     public:
-        DataSource();
+        DataSource(unsigned long id);
+        unsigned long getId();
         virtual void update() = 0;
         virtual int getDigit(size_t index);
+
+        virtual void fromJson(JsonObject &root) {};
+        virtual void toJson(JsonObject &root) {};
 };
+
+class NoneDataSource : public DataSource {
+    public:
+        void update();
+        int getDigit(size_t index);
+}
 
 class TimeDataSource : public DataSource {
     private:
@@ -123,6 +150,8 @@ class CountdownDataSource : public DataSource {
         CountdownDataSource();
         void update();
         int getDigit(size_t index);
+
+        void fromJson(JsonObject &root);
 };
 
 class CountupDataSource : public DataSource {
@@ -143,6 +172,7 @@ class ESPOverlayManager {
         DotElement _dot;
 
         DataSource *_dataSource;
+        SegmentTransition *_segmentTransition;
 
     public:
         ESPOverlayManager();

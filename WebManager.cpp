@@ -5,6 +5,7 @@
 
 #include "PaletteManager.h"
 #include "VirtualDeviceManager.h"
+#include "OverlayManager.h"
 #include "PresetManager.h"
 #include "ConnectivityManager.h"
 #include "StorageManager.h"
@@ -15,7 +16,7 @@
 
 using namespace std::placeholders;
 
-ESPWebManager::ESPWebManager() : _server(80), _ws("/ws"), _wifiConfigWs("/ws/wifi_config") {
+ESPWebManager::ESPWebManager() : _server(80), _ws("/ws"), _wifiConfigWs("/ws/wifi_config"), _liveDataWs("/ws/live") {
 
 }
 
@@ -66,11 +67,49 @@ void ESPWebManager::begin() {
 
 
 
+    _server.on("/upload_gif", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(LittleFS, "/upload_gif.html");
+    });
+
+    _server.on("/upload_gif", HTTP_POST, [](AsyncWebServerRequest *request) {
+        request->send(200);
+    }, [=](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+        if (!index) {
+            Serial.println("Upload started");
+
+            // String path = "/gif/" + filename;
+            String path = "/gif/test2.gif";
+            _currentFile = LittleFS.open(path, "w");
+            if (!_currentFile) {
+                Serial.println("Failed to open file: " + path);
+            }
+        }
+
+        if (!_currentFile) {
+            return;
+        }
+
+        Serial.print("Uploading: ");
+        Serial.print(index);
+        Serial.print("...");
+        Serial.println((index + len));
+        _currentFile.write(data, len);
+
+        if (final) {
+            Serial.println("Upload finished");
+            _currentFile.close();
+        }
+    });
+
+
+
     _ws.onEvent(std::bind(&ESPWebManager::onWSEvent, this, _1, _2, _3, _4, _5, _6));
     _server.addHandler(&_ws);
 
     _wifiConfigWs.onEvent(std::bind(&ESPWifiManager::onWSEvent, WifiManager, _1, _2, _3, _4, _5, _6));
     _server.addHandler(&_wifiConfigWs);
+
+    _server.addHandler(&_liveDataWs);
 
     // Alexa.h starts the server
     // _server.begin();
@@ -90,6 +129,7 @@ void ESPWebManager::onWSEvent(AsyncWebSocket *server, AsyncWebSocketClient *clie
 
         PaletteManager.toJson(jsonObj);
         VirtualDeviceManager.toJson(jsonObj);
+        OverlayManager.toJson(jsonObj);
         PresetManager.toJson(jsonObj);
         ConnectivityManager.toJson(jsonObj);
         Alexa.toJson(jsonObj);
@@ -121,6 +161,8 @@ void ESPWebManager::onWSEvent(AsyncWebSocket *server, AsyncWebSocketClient *clie
             Profiler.addTimestamp();
             VirtualDeviceManager.fromJson(jsonObj);
             Profiler.addTimestamp();
+            OverlayManager.fromJson(jsonObj);
+            Profiler.addTimestamp();
             PresetManager.fromJson(jsonObj);
             Profiler.addTimestamp();
             Alexa.fromJson(jsonObj);
@@ -140,6 +182,11 @@ void ESPWebManager::sendToAllClients(String text) {
 
 void ESPWebManager::sendToAllWifiConfigClients(String text) {
     _wifiConfigWs.textAll(text);
+}
+
+
+void ESPWebManager::sendLiveData(uint8_t *buf, unsigned long len) {
+    _liveDataWs.binaryAll(buf, len);
 }
 
 ESPWebManager WebManager;

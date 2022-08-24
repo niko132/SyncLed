@@ -6,40 +6,118 @@
 
         <link rel="stylesheet" href="grapick.min.css">
         <script src="grapick.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-dragdata@2.2.3/dist/chartjs-plugin-dragdata.min.js"></script>
     </head>
     <body>
         <div id="content">
             <div class="header">
                 <h1 class="header-title">SyncLED</h1>
-                <button id="power-btn" class="power-btn vd-btn-on" onclick="toggleOnOff(this)"></button>
+                <div>
+                    <button id="live-data-btn" class="header-btn preview-btn vd-btn-on" onclick="toggleLiveData(this)"></button>
+                    <button id="power-btn" class="header-btn power-btn vd-btn-on" onclick="toggleOnOff(this)"></button>
+                </div>
             </div>
             <div id="preset-chips" class="chip-container">
             </div>
             <div id="vds-div">
                 <div id="vds-list">
                 </div>
-                <button class="vd-add-btn" onclick="addVD()"></button>
+                <button class="component-add-btn" onclick="addVD()"></button>
             </div>
             <div id="palettes-div">
                 <div id="palettes-list">
                 </div>
-                <button class="vd-add-btn" onclick="addPalette()"></button>
+                <button class="component-add-btn" onclick="addPalette()"></button>
             </div>
             <div id="presets-div">
                 <div id="presets-list">
                 </div>
-                <button class="vd-add-btn" onclick="addPreset()"></button>
+                <button class="component-add-btn" onclick="addPreset()"></button>
             </div>
             <div id="playlists-div">
                 <div id="playlists-list">
                 </div>
-                <button class="vd-add-btn" onclick="addPlaylist()"></button>
+                <button class="component-add-btn" onclick="addPlaylist()"></button>
+            </div>
+            <div id="overlay-div">
+                <div id="overlay-list">
+                    <div id="overlay_0" class="card">
+                        <div class="card-header">
+                            <h2 class="name-input">Overlay</h2>
+                        </div>
+                        <div class="card-body overlay-body">
+                            <div class="overlay-item-container">
+                                <div>
+                                    <label>Overlay:</label>
+                                    <select id="overlay-data-select">
+                                        <option value="1">None</option>
+                                        <option value="2">Clock</option>
+                                        <option value="3">Countdown</option>
+                                        <option value="4">Countup</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="overlay-item-container grid-two-cols overlay-time-container">
+                                <div>
+                                    <label>Minutes:</label>
+                                    <div class="input-field">
+                                        <input id="overlay-countdown-minutes" type="number" value="60"/>
+                                        <span>min</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Seconds:</label>
+                                    <div class="input-field">
+                                        <input id="overlay-countdown-seconds" type="number" value="60"/>
+                                        <span>sec</span>
+                                    </div>
+                                </div>
+                                <button id="overlay-start-btn" class="use-btn">Start</button>
+                            </div>
+                                <div class="overlay-item-container">
+                                    <label>Segment Transition:</label>
+                                    <select id="overlay-transition-select">
+                                        <option value="1">Non</option>
+                                        <option value="2">Fade</option>
+                                        <option value="3">Flow</option>
+                                    </select>
+                                </div>
+                                <div class="overlay-item-container">
+                                    <label>Transition Duration:</label>
+                                    <div class="input-field">
+                                        <input id="overlay-transition-duration" type="number" value="500"/>
+                                        <span>ms</span>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="settings-div">
+                <div id="settings-list">
+                    <div id="settings_0" class="card">
+                        <div class="card-header">
+                            <h2 class="name-input">Settings</h2>
+                        </div>
+                        <div class="card-body settings-body">
+                            <label class="settings-label">Number of LEDs:</label>
+                            <input type="number" id="settings-num-leds" min="0" max="500" value="180">
+                        </div>
+                        <div class="card-body settings-body">
+                            <label class="settings-label">Use Brightness Control:</label>
+                            <input type="checkbox" id="settings-use-bri-control">
+                            <canvas id="bri-control-chart" width="200" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="footer">
                 <button class="footer-btn footer-btn-devs" onclick="navigation(0)"></button>
                 <button class="footer-btn footer-btn-palettes" onclick="navigation(1)"></button>
                 <button class="footer-btn footer-btn-presets" onclick="navigation(2)"></button>
-                <button class="footer-btn footer-btn-settings" onclick="navigation(3)"></button>
+                <button class="footer-btn footer-btn-overlay" onclick="navigation(3)"></button>
+                <button class="footer-btn footer-btn-settings" onclick="navigation(4)"></button>
             </div>
         </div>
     </body>

@@ -4,6 +4,10 @@
 #include "ConnectivityManager.h"
 #include "Utils.h"
 
+ESPTimeManager::ESPTimeManager() : _timeClient(_ntpUdp, "pool.ntp.org", 2 * 3600, 1 * 60 * 60 * 1000) {
+
+}
+
 void ESPTimeManager::begin() {
 	_lastSyncMillis = millis() - TIME_SYNC_INTERVAL;
 	_beginMillis = millis();
@@ -16,6 +20,12 @@ void ESPTimeManager::update() {
 		if (sendTimeSyncRequest())
 			_lastSyncMillis = now;
 	}
+
+	bool success = _timeClient.update();
+    if (success) {
+        Serial.print("NTP: ");
+        Serial.println(_timeClient.getFormattedTime());
+    }
 }
 
 bool ESPTimeManager::sendTimeSyncRequest() {
@@ -101,5 +111,19 @@ bool ESPTimeManager::handlePacket(Reader &reader, IPAddress ip, unsigned long re
 bool ESPTimeManager::canBeVisible() {
 	return _synced || millis() - _beginMillis > SINGLE_HOST_TIME;
 }
+
+
+int ESPTimeManager::getHours() {
+	return _timeClient.getHours();
+}
+
+int ESPTimeManager::getMinutes() {
+	return _timeClient.getMinutes();
+}
+
+int ESPTimeManager::getSeconds() {
+	return _timeClient.getSeconds();
+}
+
 
 ESPTimeManager TimeManager;

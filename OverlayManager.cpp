@@ -1,13 +1,25 @@
 #include "OverlayManager.h"
 
-SegmentTransition::SegmentTransition(size_t numSegments, size_t ledsPerSegment) {
-    _numSegments = numSegments;
-    _ledsPerSegment = ledsPerSegment;
+SegmentTransition::SegmentTransition(unsigned long id) : _id(id) {
+    _numSegments = SevenSegmentElement::NUM_SEGMENTS;
+    _ledsPerSegment = SevenSegmentElement::LEDS_PER_SEGMENT;
 
     _durationMillis = 300;
 }
 
-NoTransition::NoTransition(size_t numSegments, size_t ledsPerSegment) : SegmentTransition(numSegments, ledsPerSegment) {
+unsigned long SegmentTransition::getId() {
+    return _id;
+}
+
+void SegmentTransition::fromJson(JsonObject &root) {
+    _durationMillis = root["dMs"] | _durationMillis;
+}
+
+void SegmentTransition::toJson(JsonObject &root) {
+    root["dMs"] = _durationMillis;
+}
+
+NoTransition::NoTransition() : SegmentTransition(TRANSITION_NONE) {
 
 }
 
@@ -27,7 +39,7 @@ void NoTransition::transition(double *brightness, uint8_t *targetSegments, unsig
     }
 }
 
-FadeTransition::FadeTransition(size_t numSegments, size_t ledsPerSegment) : SegmentTransition(numSegments, ledsPerSegment) {
+FadeTransition::FadeTransition() : SegmentTransition(TRANSITION_FADE) {
 
 }
 
@@ -55,7 +67,7 @@ void FadeTransition::transition(double *brightness, uint8_t *targetSegments, uns
     }
 }
 
-FlowTransition::FlowTransition(size_t numSegments, size_t ledsPerSegment) : SegmentTransition(numSegments, ledsPerSegment) {
+FlowTransition::FlowTransition() : SegmentTransition(TRANSITION_FLOW) {
 
 }
 
@@ -71,7 +83,6 @@ void FlowTransition::transition(double *brightness, uint8_t *targetSegments, uns
             fac = -1.0;
         }
 
-        // TODO: maybe move to flowDim method
         fac *= deltaMillis;
 
         // TODO: improve readability
@@ -101,7 +112,6 @@ void FlowTransition::flowDim(double *brightness, int seg, int startIndex, int en
         dir = -1;
     }
 
-    // double amount = ((endIndex - startIndex) * dir + 1) * 0.075 * fac;
     double amountPerMilli = 1.0 / _durationMillis;
     double amount = ((endIndex - startIndex) * dir + 1) * amountPerMilli * fac;
 
@@ -181,20 +191,19 @@ SevenSegmentElement::SevenSegmentElement(size_t startIndex) : OverlayElement(sta
         _brightness[i] = 0;
     }
 
-    // _transition = new FadeTransition(NUM_SEGMENTS, LEDS_PER_SEGMENT);
-    _transition = new FlowTransition(NUM_SEGMENTS, LEDS_PER_SEGMENT);
-
     _lastUpdateMillis = millis();
 }
 
-void SevenSegmentElement::update(uint8_t *colors) {
+void SevenSegmentElement::update(uint8_t *colors, SegmentTransition *transition) {
     const uint8_t *segments = SEGMENTS[_number];
 
     unsigned long now = millis();
     unsigned long deltaMillis = now - _lastUpdateMillis;
     _lastUpdateMillis = now;
 
-    _transition->transition(_brightness, (uint8_t*)segments, deltaMillis);
+    if (transition) {
+        transition->transition(_brightness, (uint8_t*)segments, deltaMillis);
+    }
 
     for (size_t i = 0; i < LENGTH; i++) {
         colors[(_startIndex + i) * 3] *= _brightness[i];
@@ -228,20 +237,38 @@ void DotElement::update(uint8_t *colors) {
 }
 
 
-DataSource::DataSource() {
+DataSource::DataSource(unsigned long id) : _id(id) {
 
+}
+
+unsigned long DataSource::getId() {
+    return _id;
 }
 
 int DataSource::getDigit(size_t index) {
     return 0;
 }
 
-TimeDataSource::TimeDataSource() : _timeClient(_ntpUdp, "pool.ntp.org", 2 * 3600) {
+void NoneDataSource::update() {
+    // do nothing
+}
+
+int NoneDataSource::getDigit(size_t index) {
+    return 8; // light up every segment
+}
+
+TimeDataSource::TimeDataSource() : DataSource(OVERLAY_CLOCK), _timeClient(_ntpUdp, "pool.ntp.org", 2 * 3600, 1 * 60 * 60 * 1000) {
     _timeClient.begin();
 }
 
 void TimeDataSource::update() {
-    _timeClient.update();
+    // TODO: maybe implement some updates
+    // for now we only update once because otherwise the software runs slow
+    bool success = _timeClient.update();
+    if (success) {
+        Serial.print("NTP: ");
+        Serial.println(_timeClient.getFormattedTime());
+    }
 }
 
 int TimeDataSource::getDigit(size_t index) {
@@ -260,9 +287,9 @@ int TimeDataSource::getDigit(size_t index) {
 }
 
 
-CountdownDataSource::CountdownDataSource() {
+CountdownDataSource::CountdownDataSource() : DataSource(OVERLAY_COUNTDOWN) {
     _startMillis = millis();
-    _valueMillis = 1 * 60 * 1000 + 30 * 1000;
+    _valueMillis = 1 * 60 * 1000;
     _elapsedMillis = 0;
 }
 
@@ -294,7 +321,15 @@ int CountdownDataSource::getDigit(size_t index) {
     }
 }
 
-CountupDataSource::CountupDataSource() {
+void CountdownDataSource::fromJson(JsonObject &root) {
+    DataSource::fromJson(root);
+
+    _valueMillis = root["vMs"] | _valueMillis;
+    _startMillis = millis(); // restart the countdown
+    _elapsedMillis = 0;
+}
+
+CountupDataSource::CountupDataSource() : DataSource(OVERLAY_COUNTUP) {
     _startMillis = millis();
     _elapsedMillis = 0;
 }
@@ -330,7 +365,7 @@ ESPOverlayManager::ESPOverlayManager() : _dot(112) {
     _digits.push_back(SevenSegmentElement(176));
 
     _dataSource = new TimeDataSource();
-    // _dataSource = new CountupDataSource();
+    _segmentTransition = new NoTransition();
 }
 
 void ESPOverlayManager::begin() {
@@ -342,18 +377,77 @@ void ESPOverlayManager::update(uint8_t *colors, size_t numLeds) {
 
     for (size_t i = 0; i < 4; i++) {
         _digits[i].setNumber(_dataSource->getDigit(i));
-        _digits[i].update(colors);
+        _digits[i].update(colors, _segmentTransition);
     }
 
     _dot.update(colors);
 }
 
 void ESPOverlayManager::fromJson(JsonObject &root) {
+    unsigned long overlayId = root["oId"] | 0;
+    if (overlayId) {
+        DataSource *dataSource = NULL;
 
+        switch (overlayId) {
+            case OVERLAY_NONE:
+                dataSource = new NoneDataSource();
+                break;
+            case OVERLAY_CLOCK:
+                dataSource = new TimeDataSource();
+                break;
+            case OVERLAY_COUNTDOWN:
+                dataSource = new CountdownDataSource();
+                break;
+            case OVERLAY_COUNTUP:
+                dataSource = new CountupDataSource();
+        }
+
+        if (dataSource) {
+            if (_dataSource)
+                delete _dataSource;
+
+            _dataSource = dataSource;
+        }
+    }
+
+    JsonObject overlayDataObj = root["oD"];
+    if (overlayDataObj && _dataSource) {
+        _dataSource->fromJson(overlayDataObj);
+    }
+
+    unsigned long transitionId = root["tId"] | 0;
+    if (transitionId) {
+        SegmentTransition *transition = NULL;
+
+        switch (transitionId) {
+            case TRANSITION_NONE:
+                transition = new NoTransition();
+                break;
+            case TRANSITION_FADE:
+                transition = new FadeTransition();
+                break;
+            case TRANSITION_FLOW:
+                transition = new FlowTransition();
+                break;
+        }
+
+        if (transition) {
+            if (_segmentTransition)
+                delete _segmentTransition;
+
+            _segmentTransition = transition;
+        }
+    }
+
+    JsonObject transitionDataObj = root["tD"];
+    if (transitionDataObj && _segmentTransition) {
+        _segmentTransition->fromJson(transitionDataObj);
+    }
 }
 
 void ESPOverlayManager::toJson(JsonObject &root) {
-
+    root["oId"] = _dataSource->getId();
+    root["tId"] = _segmentTransition->getId();
 }
 
 ESPOverlayManager OverlayManager;

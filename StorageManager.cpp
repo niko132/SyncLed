@@ -4,6 +4,7 @@
 
 #include "PaletteManager.h"
 #include "VirtualDeviceManager.h"
+#include "OverlayManager.h"
 #include "PresetManager.h"
 #include "Alexa.h"
 
@@ -29,6 +30,7 @@ void ESPStorageManager::loadConfig() {
 
     PaletteManager.fromJson(jsonObj);
     VirtualDeviceManager.fromJson(jsonObj);
+    OverlayManager.fromJson(jsonObj);
     PresetManager.fromJson(jsonObj);
     Alexa.fromJson(jsonObj);
 };
@@ -45,6 +47,7 @@ void ESPStorageManager::update() {
 
         PaletteManager.toJson(jsonObj);
         VirtualDeviceManager.toJson(jsonObj);
+        OverlayManager.toJson(jsonObj);
         PresetManager.toJson(jsonObj);
         Alexa.toJson(jsonObj);
 
