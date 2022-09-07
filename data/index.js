@@ -1,5 +1,5 @@
-const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 1000, 1001];
-const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Firework', 'Firework2D', 'GIF 2D', 'Receive', 'Receive2D'];
+const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 1000, 1001];
+const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Firework', 'Firework2D', 'GIF 2D', 'Random Dots', 'Receive', 'Receive2D'];
 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
@@ -542,6 +542,33 @@ class VirtualDeviceComponent extends Component {
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{rPS:value}}]}));
             });
             parent.appendChild(rotSlider);
+        } else if (eId == 103) {
+            const si = eD['si'] || 3;
+            const d = eD['d'] * 100.0 | 0.5;
+
+            const sizeText = document.createElement('label');
+            sizeText.innerHTML = 'Size:';
+            parent.appendChild(sizeText);
+
+            const sizeSlider = this.createSlider(1, 100, si, function() {
+                const value = parseInt(this.value);
+                eD['si'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{si:value}}]}));
+            });
+            parent.appendChild(sizeSlider);
+
+            const densityText = document.createElement('label');
+            densityText.innerHTML = 'Density:';
+            parent.appendChild(densityText);
+
+            const densitySlider = this.createSlider(1, 100, d, function() {
+                const value = parseInt(this.value) / 100.0;
+                eD['d'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{d:value}}]}));
+            });
+            parent.appendChild(densitySlider);
+
+            
         }
     };
 

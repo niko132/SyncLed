@@ -11,6 +11,7 @@
 #include "src/effects/Gif2D.h"
 #include "src/effects/Receive.h"
 #include "src/effects/Receive2D.h"
+#include "src/effects/RandomDots.h"
 
 #include "src/effects/Firework.h"
 
@@ -56,6 +57,9 @@ Effect* ESPEffectManager::getEffectById(unsigned long id) {
             break;
         case EFFECT_RECEIVE_2D:
             effect = new Receive2D();
+            break;
+        case EFFECT_RANDOM_DOTS:
+            effect = new RandomDots();
             break;
     }
 
