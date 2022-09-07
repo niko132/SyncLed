@@ -13,6 +13,7 @@ An ESP8266/ESP32 based LED controller with focus on usability, customization and
 - 2D effects for LED matrices
 - 7 Segment Display options (Time, Countdown, ...)
 - Auto Brightness for daytime dependent brightness
+- Stream from other software (Hyperion, Audio-reactive-led, ...)
 
 ## Parts needed
 - ESP8266 / ESP32 microcontroller

@@ -1,4 +1,5 @@
 #include "OverlayManager.h"
+#include "TimeManager.h"
 
 SegmentTransition::SegmentTransition(unsigned long id) : _id(id) {
     _numSegments = SevenSegmentElement::NUM_SEGMENTS;
@@ -218,13 +219,12 @@ void SevenSegmentElement::setNumber(int number) {
 
 
 
-DotElement::DotElement(size_t startIndex) : OverlayElement(startIndex), _counter(0) {
+DotElement::DotElement(size_t startIndex) : OverlayElement(startIndex) {
 
 }
 
 void DotElement::update(uint8_t *colors) {
-    _counter = (_counter + 1) % 120;
-    double frac = _counter / 60.0;
+    double frac = (TimeManager.syncedMillis() % 2000) / 1000.0;
     if (frac > 1.0) {
         frac = 2.0 - frac;
     }
@@ -249,6 +249,14 @@ int DataSource::getDigit(size_t index) {
     return 0;
 }
 
+bool DataSource::animateDots() {
+    return true;
+}
+
+NoneDataSource::NoneDataSource() : DataSource(OVERLAY_NONE) {
+
+}
+
 void NoneDataSource::update() {
     // do nothing
 }
@@ -257,30 +265,28 @@ int NoneDataSource::getDigit(size_t index) {
     return 8; // light up every segment
 }
 
-TimeDataSource::TimeDataSource() : DataSource(OVERLAY_CLOCK), _timeClient(_ntpUdp, "pool.ntp.org", 2 * 3600, 1 * 60 * 60 * 1000) {
-    _timeClient.begin();
+bool NoneDataSource::animateDots() {
+    return false;
+}
+
+TimeDataSource::TimeDataSource() : DataSource(OVERLAY_CLOCK) {
+    
 }
 
 void TimeDataSource::update() {
-    // TODO: maybe implement some updates
-    // for now we only update once because otherwise the software runs slow
-    bool success = _timeClient.update();
-    if (success) {
-        Serial.print("NTP: ");
-        Serial.println(_timeClient.getFormattedTime());
-    }
+
 }
 
 int TimeDataSource::getDigit(size_t index) {
     switch(index) {
         case 0:
-            return _timeClient.getMinutes() % 10;
+            return TimeManager.getMinutes() % 10;
         case 1:
-            return _timeClient.getMinutes() / 10;
+            return TimeManager.getMinutes() / 10;
         case 2:
-            return _timeClient.getHours() % 10;
+            return TimeManager.getHours() % 10;
         case 3:
-            return _timeClient.getHours() / 10;
+            return TimeManager.getHours() / 10;
         default:
             return DataSource::getDigit(index);
     }
@@ -380,7 +386,9 @@ void ESPOverlayManager::update(uint8_t *colors, size_t numLeds) {
         _digits[i].update(colors, _segmentTransition);
     }
 
-    _dot.update(colors);
+    if (_dataSource->animateDots()) {
+        _dot.update(colors);
+    }
 }
 
 void ESPOverlayManager::fromJson(JsonObject &root) {

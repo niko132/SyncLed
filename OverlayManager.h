@@ -4,9 +4,6 @@
 #include <vector>
 #include <ArduinoJson.h>
 
-#include <WiFiUdp.h>
-#include <NTPClient.h>
-
 #define OVERLAY_NONE 1
 #define OVERLAY_CLOCK 2
 #define OVERLAY_COUNTDOWN 3
@@ -97,9 +94,6 @@ class SevenSegmentElement : public OverlayElement {
 
 
 class DotElement : public OverlayElement {
-    private:
-        size_t _counter;
-
     public:
         static const size_t LENGTH = 8;
 
@@ -117,6 +111,7 @@ class DataSource {
         unsigned long getId();
         virtual void update() = 0;
         virtual int getDigit(size_t index);
+        virtual bool animateDots();
 
         virtual void fromJson(JsonObject &root) {};
         virtual void toJson(JsonObject &root) {};
@@ -124,16 +119,13 @@ class DataSource {
 
 class NoneDataSource : public DataSource {
     public:
+        NoneDataSource();
         void update();
         int getDigit(size_t index);
-}
+        bool animateDots();
+};
 
 class TimeDataSource : public DataSource {
-    private:
-        WiFiUDP _ntpUdp;
-        // Define NTP Client to get time
-        NTPClient _timeClient;
-
     public:
         TimeDataSource();
         void update();
