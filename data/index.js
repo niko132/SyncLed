@@ -1,5 +1,5 @@
-const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 100, 101, 102, 103, 1000, 1001];
-const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Firework', 'Firework2D', 'GIF 2D', 'Random Dots', 'Receive', 'Receive2D'];
+const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101, 102, 103, 104, 105, 1000, 1001];
+const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Blink', 'Wipe', 'Shift', 'Firework', 'Firework2D', 'GIF 2D', 'Random Dots', 'Sparkle Fill', 'Sparkle', 'Receive', 'Receive2D'];
 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
@@ -542,6 +542,45 @@ class VirtualDeviceComponent extends Component {
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{rPS:value}}]}));
             });
             parent.appendChild(rotSlider);
+        }  else if (eId == 8) {
+            const nC = eD['nC'] || 2;
+
+            const numText = document.createElement('label');
+            numText.innerHTML = 'Number of Colors:';
+            parent.appendChild(numText);
+
+            const numSlider = this.createSlider(1, 20, nC, function() {
+                const value = parseInt(this.value);
+                eD['nC'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{nC:value}}]}));
+            });
+            parent.appendChild(numSlider);
+        }  else if (eId == 9) {
+            const nC = eD['nC'] || 2;
+
+            const numText = document.createElement('label');
+            numText.innerHTML = 'Number of Colors:';
+            parent.appendChild(numText);
+
+            const numSlider = this.createSlider(1, 20, nC, function() {
+                const value = parseInt(this.value);
+                eD['nC'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{nC:value}}]}));
+            });
+            parent.appendChild(numSlider);
+        }  else if (eId == 10) {
+            const nC = eD['nC'] || 2;
+
+            const numText = document.createElement('label');
+            numText.innerHTML = 'Number of Colors:';
+            parent.appendChild(numText);
+
+            const numSlider = this.createSlider(1, 20, nC, function() {
+                const value = parseInt(this.value);
+                eD['nC'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{nC:value}}]}));
+            });
+            parent.appendChild(numSlider);
         } else if (eId == 103) {
             const si = eD['si'] || 3;
             const d = eD['d'] * 100.0 | 0.5;
@@ -567,8 +606,19 @@ class VirtualDeviceComponent extends Component {
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{d:value}}]}));
             });
             parent.appendChild(densitySlider);
+        } else if (eId == 105) {
+            const si = eD['si'] || 5;
 
-            
+            const sizeText = document.createElement('label');
+            sizeText.innerHTML = 'Size:';
+            parent.appendChild(sizeText);
+
+            const sizeSlider = this.createSlider(1, 100, si, function() {
+                const value = parseInt(this.value);
+                eD['si'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{si:value}}]}));
+            });
+            parent.appendChild(sizeSlider);
         }
     };
 

@@ -12,6 +12,11 @@
 #include "src/effects/Receive.h"
 #include "src/effects/Receive2D.h"
 #include "src/effects/RandomDots.h"
+#include "src/effects/Blink.h"
+#include "src/effects/Wipe.h"
+#include "src/effects/Shift.h"
+#include "src/effects/SparkleFill.h"
+#include "src/effects/Sparkle.h"
 
 #include "src/effects/Firework.h"
 
@@ -47,9 +52,6 @@ Effect* ESPEffectManager::getEffectById(unsigned long id) {
             effect = new Firework2D();
             break;
         case EFFECT_GIF_2D:
-            Serial.println("Creating Effect: GIF 2D");
-            Serial.print("Size: ");
-            Serial.println(sizeof(Gif2D));
             effect = new Gif2D();
             break;
         case EFFECT_RECEIVE:
@@ -60,6 +62,21 @@ Effect* ESPEffectManager::getEffectById(unsigned long id) {
             break;
         case EFFECT_RANDOM_DOTS:
             effect = new RandomDots();
+            break;
+        case EFFECT_BLINK:
+            effect = new Blink();
+            break;
+        case EFFECT_WIPE:
+            effect = new Wipe();
+            break;
+        case EFFECT_SHIFT:
+            effect = new Shift();
+            break;
+        case EFFECT_SPARKLE_FILL:
+            effect = new SparkleFill();
+            break;
+        case EFFECT_SPARKLE:
+            effect = new Sparkle();
             break;
     }
 
