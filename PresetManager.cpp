@@ -3,13 +3,15 @@
 #include "StorageManager.h"
 #include "WebManager.h"
 
-
+using namespace std::placeholders;
 
 Preset::Preset(unsigned long id) {
     _id = id;
 
     uint32_t localIP = WiFi.localIP();
     _ips.insert(localIP);
+
+    _enableAlexa = false;
 };
 
 Preset::Preset(unsigned long id, String name, ip_set ips) {
@@ -45,6 +47,17 @@ void Preset::load() {
     }
 };
 
+void Preset::alexaDeviceCallback(EspalexaDevice* d) {
+    if (d == NULL)
+        return;
+    
+    if (d->getValue()) {
+        // activate the preset
+        Serial.println("Alexa - activate preset: " + _name);
+        PresetManager.load(_id);
+    }
+};
+
 void Preset::fromJson(JsonObject &root) {
     _id = root["id"] | _id;
     _name = root["n"] | _name;
@@ -60,6 +73,29 @@ void Preset::fromJson(JsonObject &root) {
             ipAddr.fromString(ipStr);
             uint32_t ip = ipAddr;
             _ips.insert(ip);
+        }
+    }
+
+    _enableAlexa = root["eA"] | _enableAlexa;
+    JsonVariant enableAlexaVar = root["eA"];
+    if (!enableAlexaVar.isNull()) {
+        // enable
+        if (_enableAlexa) {
+            if (!_alexaDevice) {
+                Serial.println("Creating new AlexaDevice: " + _name);
+                _alexaDevice = new EspalexaDevice(_name, std::bind(&Preset::alexaDeviceCallback, this, _1), EspalexaDeviceType::onoff);
+                Alexa.registerDevice(_alexaDevice);
+            } else {
+                Serial.println("Changing name of AlexaDevice: " + _name);
+                _alexaDevice->setName(_name);
+            }
+        } else {
+            if (_alexaDevice) {
+                Serial.println("Deleting AlexaDevice");
+                // TODO: can cause NPE - find another way of removing
+                delete _alexaDevice;
+                _alexaDevice = NULL;
+            }
         }
     }
 
@@ -98,6 +134,8 @@ void Preset::toJson(JsonObject &root) {
         String ipStr = ipAddr.toString();
         ipsArray.add(ipStr);
     }
+
+    root["eA"] = _enableAlexa;
 };
 
 

@@ -59,6 +59,11 @@ void ESPAlexa::deviceCallback(EspalexaDevice* d) {
 }
 
 
+void ESPAlexa::registerDevice(EspalexaDevice *d) {
+    _alexa.addDevice(d);
+}
+
+
 void ESPAlexa::fromJson(JsonObject &root) {
     _name = root["an"] | _name;
 

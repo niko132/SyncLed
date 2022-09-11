@@ -12,6 +12,7 @@
 #include "VirtualDeviceManager.h"
 #include "Utils.h"
 #include "NetworkManager.h"
+#include "Alexa.h"
 
 #define SUBTYPE_CREATE_PRESET 1
 #define SUBTYPE_SET_PRESET 2
@@ -27,6 +28,8 @@ class Preset {
         unsigned long _id;
         String _name;
         ip_set _ips;
+        bool _enableAlexa;
+        EspalexaDevice *_alexaDevice = NULL;
 
     public:
         Preset(unsigned long id);
@@ -36,6 +39,8 @@ class Preset {
         String getName();
 
         void load();
+
+        void alexaDeviceCallback(EspalexaDevice* d);
 
         void fromJson(JsonObject &root);
         void toJson(JsonObject &root);

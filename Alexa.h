@@ -16,6 +16,7 @@ class ESPAlexa {
         void update();
 
         void deviceCallback(EspalexaDevice* d);
+        void registerDevice(EspalexaDevice *d);
 
         void fromJson(JsonObject &root);
         void toJson(JsonObject &root);
