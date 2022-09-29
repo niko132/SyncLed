@@ -30,48 +30,12 @@ void ESPWebManager::begin() {
         request->send(200, "text/plain", String(ESP.getFreeHeap()));
     });
 
-    // send a file when /index is requested
-    _server.on("/index", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/index.html");
-    });
-    _server.on("/index.js", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/index.js");
-    });
-    _server.on("/index.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/index.css");
-    });
+    // serve all contents of the www directory
+    _server.serveStatic("/", LittleFS, "/www/").setCacheControl("max-age=604800");
+    _server.rewrite("/", "/index.html").setFilter(ON_STA_FILTER);
+    _server.rewrite("/", "/wifi_config.html").setFilter(ON_AP_FILTER);
 
-    _server.on("/grapick.min.js", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/grapick.min.js");
-    });
-    _server.on("/grapick.min.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/grapick.min.css");
-    });
-
-
-
-    _server.on("/wifi_config", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        // request->send(LittleFS, "/wifi_config.html");
-        request->send(LittleFS, "/wifi_config.html");
-    });
-
-    _server.on("/wifi_config.css", HTTP_ANY, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/wifi_config.css");
-    });
-
-    _server.onNotFound([](AsyncWebServerRequest *request) {
-        // TODO: handle alexa
-        // TODO: only redirect when in AP mode
-        request->redirect("http://" + WiFi.softAPIP().toString() + "/wifi_config");
-    });
-
-
-
-    _server.on("/upload_gif", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(LittleFS, "/upload_gif.html");
-    });
-
-    _server.on("/upload_gif", HTTP_POST, [](AsyncWebServerRequest *request) {
+    _server.on("/upload_gif.html", HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200);
     }, [=](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
         if (!index) {
@@ -101,8 +65,20 @@ void ESPWebManager::begin() {
         }
     });
 
+    // not found needs to be handled as the last one
+    _server.onNotFound([](AsyncWebServerRequest *request) {
+        // TODO: handle alexa
+        // TODO: only redirect when in AP mode
+        String redirectUrl = "";
+        if (ON_STA_FILTER(request)) {
+            redirectUrl = "http://" + WiFi.localIP().toString() + "/";
+        } else {
+            redirectUrl = "http://" + WiFi.softAPIP().toString() + "/";
+        }
+        request->redirect(redirectUrl);
+    });
 
-
+    // add all websocket handlers
     _ws.onEvent(std::bind(&ESPWebManager::onWSEvent, this, _1, _2, _3, _4, _5, _6));
     _server.addHandler(&_ws);
 

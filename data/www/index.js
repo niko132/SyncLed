@@ -4,7 +4,7 @@ const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
 
-const host = window.location.hostname || '192.168.3.8';
+const host = window.location.hostname || '192.168.3.11';
 var ws;
 
 var currentCfg = {};
@@ -1585,13 +1585,14 @@ function init() {
 };
 
 function toggleLiveData(e) {
-    if (liveWs) {
-        disableLiveData();
-    } else {
+    const value = !(liveWs);
+
+    if (value) {
         enableLiveData();
+    } else {
+        disableLiveData();
     }
 
-    const value = !e.classList.contains('vd-btn-on');
     console.log(value);
 
     if (value) {

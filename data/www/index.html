@@ -14,7 +14,7 @@
             <div class="header">
                 <h1 class="header-title">SyncLED</h1>
                 <div>
-                    <button id="live-data-btn" class="header-btn preview-btn vd-btn-on" onclick="toggleLiveData(this)"></button>
+                    <button id="live-data-btn" class="header-btn preview-btn vd-btn-off" onclick="toggleLiveData(this)"></button>
                     <button id="power-btn" class="header-btn power-btn vd-btn-on" onclick="toggleOnOff(this)"></button>
                 </div>
             </div>
@@ -99,6 +99,9 @@
                     <div id="settings_0" class="card">
                         <div class="card-header">
                             <h2 class="name-input">Settings</h2>
+                        </div>
+                        <div class="card-body settings-body">
+                            <button onclick="location.href='/wifi_config.html'" class="use-btn">WiFi Settings</button>
                         </div>
                         <div class="card-body settings-body">
                             <label class="settings-label">Number of LEDs:</label>
