@@ -22,7 +22,6 @@ class RandomDots : public SimulationEffect {
         float _density = 0.5;
 
         dot_list_t _dots;
-        size_t _ledCount = 0;
 
     public:
         RandomDots() : SimulationEffect(EFFECT_RANDOM_DOTS) {
@@ -39,7 +38,7 @@ class RandomDots : public SimulationEffect {
                 for (dot_list_t *it = &_dots; it->next != NULL; ) {
                     dot_list_t *curr = it->next;
                     
-                    if (it->next->pos >= newLedCount) {
+                    if (curr->pos >= newLedCount) {
                         it->next = curr->next;
                         delete curr;
                         curr = NULL;
@@ -48,8 +47,6 @@ class RandomDots : public SimulationEffect {
                     }
                 }
             }
-
-            _ledCount = newLedCount;
         }
 
         void simulate(uint8_t *leds, size_t count, Palette *palette, unsigned long dTime) {
@@ -63,22 +60,22 @@ class RandomDots : public SimulationEffect {
 
             if (shouldSpawn) {
                 // TODO: spawn
-                bool *occupied = new bool[_ledCount];
-                for (size_t i = 0; i < _ledCount; i++) {
+                bool *occupied = new bool[count];
+                for (size_t i = 0; i < count; i++) {
                     occupied[i] = false;
                 }
 
                 for (dot_list_t *it = _dots.next; it != NULL; it = it->next) {
-                    for (int i = 0; i < it->size; i++) {
+                    for (int i = 0; i < it->size && it->pos + i < count; i++) {
                         occupied[it->pos + i] = true;
                     }
                 }
 
                 std::vector<size_t> freePos;
-                for (size_t i = 0; i < _ledCount; i++) {
+                for (size_t i = 0; i < count; i++) {
                     bool canSpawn = true;
                     for (int j = 0; j < _size; j++) {
-                        if (occupied[i + j]) {
+                        if (occupied[i + j] || i + j >= count) {
                             canSpawn = false;
                             break;
                         }
