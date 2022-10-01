@@ -959,6 +959,7 @@ class PresetComponent extends ExpandableComponent {
             return;
         }
 
+        let ea = cfg['eA'] || false;
         let activeIps = currentCfg['actDev'] || [];
         let remainingIPs = [];
 
@@ -977,6 +978,10 @@ class PresetComponent extends ExpandableComponent {
                     <button class="delete-btn"></button>
                 </div>
                 <div class="card-body">
+                    <div id="preset-alexa-container">
+                        <input type="checkbox" id="enable-alexa-checkbox"/>
+                        <label for="enable-alexa-checkbox">Alexa</label>
+                    </div>
                     <div>
                         <div class="active-ip-list">
                             ${(cfg['ips'] || []).map(ip => `
@@ -1007,6 +1012,7 @@ class PresetComponent extends ExpandableComponent {
         this.nameInput = this.root.getElementsByClassName('name-input')[0];
         this.editBtn = this.root.getElementsByClassName('edit-btn')[0];
         this.deleteBtn = this.root.getElementsByClassName('delete-btn')[0];
+        this.alexaCheckbox = document.getElementById('enable-alexa-checkbox');
         this.activeIpList = this.root.getElementsByClassName('active-ip-list')[0];
         this.remainingIpList = this.root.getElementsByClassName('remaining-ip-list')[0];
         this.expandCheckbox = this.root.getElementsByClassName('expand-checkbox')[0];
@@ -1017,6 +1023,11 @@ class PresetComponent extends ExpandableComponent {
         this.setDeleteElement(this.deleteBtn);
         this.setExpandableElements(this.remainingIpList, this.expandCheckbox);
 
+        this.alexaCheckbox.checked = ea;
+        this.alexaCheckbox.onchange = function() {
+            const value = this.checked;
+            ws.send(JSON.stringify({prsts:[{id:self.id,eA:value}]}));
+        };
 
         for (let listItem of this.activeIpList.getElementsByClassName('list-item')) {
             let ip = listItem.getElementsByClassName('list-item-text')[0].innerHTML;
@@ -1266,6 +1277,19 @@ function initSettings() {
     numLedsInput.onChange = numLedsChanged;
 
 
+    let alexaNameInput = document.getElementById('settings-alexa-name');
+
+    let alexaNameChanged = function() {
+        let alexaName = this.value;
+
+        console.log('Alexa name changed: ' + alexaName);
+
+        ws.send(JSON.stringify({an:alexaName}));
+    }
+
+    alexaNameInput.addEventListener('focusout', alexaNameChanged);
+    alexaNameInput.onchange = alexaNameChanged;
+
 
     let lineChart;
 
@@ -1447,6 +1471,8 @@ function initSettings() {
     }
 
     events.addEventListener(this.EVENT_SETTINGS_CHANGED, function() {
+        alexaNameInput.value = currentCfg['an'] || '';
+
         useBriControlCheckbox.checked = currentCfg['briCtrl'];
         chart.style.display = currentCfg['briCtrl'] ? 'block' : 'none';
 
@@ -1495,6 +1521,8 @@ function init() {
         const oId = cfg['oId'] || 0;
 
         const nLeds = cfg['nLeds'] || 0;
+
+        const an = cfg['an'] || '';
 
         const briCtrl = cfg['briCtrl'] || false;
         const briCtrls = cfg['briCtrls'];
@@ -1547,6 +1575,11 @@ function init() {
         if (nLeds) {
             currentCfg['nLeds'] = nLeds;
             events.dispatchEvent(new Event(EVENT_VIRTUAL_DEVICES_CHANGED)); // need to update indices
+        }
+
+        if (an) {
+            currentCfg['an'] = an;
+            events.dispatchEvent(new Event(this.EVENT_SETTINGS_CHANGED));
         }
 
         if ('briCtrl' in cfg) {

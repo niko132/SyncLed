@@ -328,6 +328,34 @@ h2 {
 }
 
 
+#preset-alexa-container {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 24px;
+    margin-bottom: 12px;
+    margin-top: -24px;
+}
+
+#enable-alexa-checkbox {
+    appearance: none;
+}
+
+#enable-alexa-checkbox + label {
+    transition: all 0.2s ease;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 9999px;
+    padding: 8px;
+    user-select: none;
+    color: #AAA;
+    border: 3px solid #AAA;
+}
+
+#enable-alexa-checkbox:checked + label {
+    color: #05A0D1;
+    border: 3px solid #05A0D1;
+}
+
 
 #presets-list {
     display: grid;
