@@ -1,42 +1,44 @@
-#ifndef RANDOM_DOTS_H
-#define RANDOM_DOTS_H
+#ifndef RANDOM_PATTERN_H
+#define RANDOM_PATTERN_H
 
 #include "../../Effect.h"
 #include "../../EffectManager.h"
 
-struct rd_dot_list_t {
-    uint32_t color;
+struct rp_dot_list_t {
+    uint32_t colorFrom;
+    uint32_t colorTo;
+    uint32_t colorCurr;
     size_t pos;
     int size;
-    float bri;
     unsigned long lifetime;
     unsigned long maxLifetime;
 
     bool isFirst;
-    struct rd_dot_list_t *next;
+    struct rp_dot_list_t *next;
 };
 
-class RandomDots : public SimulationEffect {
+class RandomPattern : public SimulationEffect {
     private:
         int _size = 3;
         float _density = 0.5;
+        int _offset = 0;
 
-        rd_dot_list_t _dots;
+        rp_dot_list_t _dots;
 
     public:
-        RandomDots() : SimulationEffect(EFFECT_RANDOM_DOTS) {
+        RandomPattern() : SimulationEffect(EFFECT_RANDOM_PATTERN) {
             _dots.isFirst = true;
             _dots.next = NULL;
         }
 
-        ~RandomDots() {
+        ~RandomPattern() {
 
         }
 
         void init(size_t oldLedCount, size_t newLedCount) {
             if (newLedCount < oldLedCount) {
-                for (rd_dot_list_t *it = &_dots; it->next != NULL; ) {
-                    rd_dot_list_t *curr = it->next;
+                for (rp_dot_list_t *it = &_dots; it->next != NULL; ) {
+                    rp_dot_list_t *curr = it->next;
                     
                     if (curr->pos >= newLedCount) {
                         it->next = curr->next;
@@ -51,7 +53,7 @@ class RandomDots : public SimulationEffect {
 
         void simulate(uint8_t *leds, size_t count, Palette *palette, unsigned long dTime) {
             size_t dotSum = 0;
-            for (rd_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
+            for (rp_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
                 dotSum += it->size;
             }
 
@@ -64,14 +66,14 @@ class RandomDots : public SimulationEffect {
                     occupied[i] = false;
                 }
 
-                for (rd_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
+                for (rp_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
                     for (int i = 0; i < it->size && it->pos + i < count; i++) {
                         occupied[it->pos + i] = true;
                     }
                 }
 
                 std::vector<size_t> freePos;
-                for (size_t i = 0; i < count; i++) {
+                for (size_t i = _offset; i < count; i += (int)(_size / _density)) {
                     bool canSpawn = true;
                     for (int j = 0; j < _size; j++) {
                         if (occupied[i + j] || i + j >= count) {
@@ -89,14 +91,16 @@ class RandomDots : public SimulationEffect {
                     size_t randPickIdx = millis() % freePos.size();
                     size_t pos = freePos[randPickIdx];
 
-                    RgbColor color = palette->getColorAtPosition((millis() % 100) / 100.0f);
+                    RgbColor color1 = palette->getColorAtPosition(random(100) / 100.0f);
+                    RgbColor color2 = palette->getColorAtPosition(random(100) / 100.0f);
 
                     // spawn new dot at pos
-                    rd_dot_list_t *newDot = new rd_dot_list_t;
-                    newDot->color = rgbToColor(color.R, color.G, color.B);
+                    rp_dot_list_t *newDot = new rp_dot_list_t;
+                    newDot->colorFrom = rgbToColor(color1.R, color1.G, color1.B);
+                    newDot->colorTo = rgbToColor(color2.R, color2.G, color2.B);
+                    newDot->colorCurr = newDot->colorFrom;
                     newDot->pos = pos;
                     newDot->size = _size;
-                    newDot->bri = 0.0f;
                     newDot->lifetime = 0;
                     newDot->maxLifetime = (millis() % 16) * 1000 + 5000;
                     newDot->isFirst = false;
@@ -110,32 +114,40 @@ class RandomDots : public SimulationEffect {
             }
 
             // update
-            for (rd_dot_list_t *it = &_dots; it->next != NULL; ) {
-                rd_dot_list_t *curr = it->next;
+            for (rp_dot_list_t *it = &_dots; it->next != NULL; ) {
+                rp_dot_list_t *curr = it->next;
 
                 curr->lifetime += dTime;
-                if (curr->lifetime < curr->maxLifetime / 2.0) {
-                    curr->bri = (float)curr->lifetime / curr->maxLifetime * 2.0f;
-                } else {
-                    curr->bri = (1.0f - (float)curr->lifetime / curr->maxLifetime) * 2.0f;
-                }
+
+                RgbColor color = RgbColor::LinearBlend(colorToRgbColor(curr->colorFrom), colorToRgbColor(curr->colorTo), (float)curr->lifetime / curr->maxLifetime);
+                curr->colorCurr = rgbToColor(color.R, color.G, color.B);
 
                 if (curr->lifetime >= curr->maxLifetime) {
-                    // delete
-                    it->next = curr->next;
-                    delete curr;
-                    curr = NULL;
+                    if (curr->size != _size || (curr->pos - _offset) % (int)((_size / _density)) != 0) {
+                        // delete
+                        it->next = curr->next;
+                        delete curr;
+                        curr = NULL;
+                    } else {
+                        // new color
+                        RgbColor newColor = palette->getColorAtPosition(random(100) / 100.0f);
+
+                        curr->colorFrom = curr->colorTo;
+                        curr->colorTo = rgbToColor(newColor.R, newColor.G, newColor.B);
+                        curr->colorCurr = curr->colorFrom;
+                        curr->lifetime = 0;
+                        curr->maxLifetime = (millis() % 16) * 1000 + 5000;
+
+                        it = it->next;
+                    }
                 } else {
                     it = it->next;
                 }
             }
 
             // render
-            for (rd_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
-                RgbColor rgb = colorToRgbColor(it->color);
-                rgb.R = (uint8_t)(rgb.R * it->bri);
-                rgb.G = (uint8_t)(rgb.G * it->bri);
-                rgb.B = (uint8_t)(rgb.B * it->bri);
+            for (rp_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
+                RgbColor rgb = colorToRgbColor(it->colorCurr);
 
                 for (int i = 0; i < it->size; i++) {
                     leds[(it->pos + i) * 3] = rgb.R;
@@ -150,12 +162,14 @@ class RandomDots : public SimulationEffect {
             SimulationEffect::fromJson(root);
             _size = root["si"] | _size;
             _density = root["d"] | _density;
+            _offset = root["o"] | _offset;
         };
         
         void toJson(JsonObject &root) {
             SimulationEffect::toJson(root);
             root["si"] = _size;
             root["d"] = _density;
+            root["o"] = _offset;
         };
 };
 

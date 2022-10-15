@@ -1,5 +1,5 @@
-const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101, 102, 103, 104, 105, 1000, 1001];
-const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Blink', 'Wipe', 'Shift', 'Firework', 'Firework2D', 'GIF 2D', 'Random Dots', 'Sparkle Fill', 'Sparkle', 'Receive', 'Receive2D'];
+const EFFECT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101, 102, 103, 104, 105, 106, 1000, 1001];
+const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 'Slide2D', 'Blink', 'Wipe', 'Shift', 'Firework', 'Firework2D', 'GIF 2D', 'Random Dots', 'Random Pattern', 'Sparkle Fill', 'Sparkle', 'Receive', 'Receive2D'];
 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
@@ -583,7 +583,7 @@ class VirtualDeviceComponent extends Component {
             parent.appendChild(numSlider);
         } else if (eId == 103) {
             const si = eD['si'] || 3;
-            const d = eD['d'] * 100.0 | 0.5;
+            const d = eD['d'] * 100.0 || 0.5;
 
             const sizeText = document.createElement('label');
             sizeText.innerHTML = 'Size:';
@@ -606,7 +606,44 @@ class VirtualDeviceComponent extends Component {
                 ws.send(JSON.stringify({vds:[{id:self.id,eD:{d:value}}]}));
             });
             parent.appendChild(densitySlider);
-        } else if (eId == 105) {
+        } else if (eId == 104) {
+            const si = eD['si'] || 3;
+            const d = eD['d'] * 100.0 || 0.5;
+            const o = eD['o'] || 0;
+
+            const sizeText = document.createElement('label');
+            sizeText.innerHTML = 'Size:';
+            parent.appendChild(sizeText);
+
+            const sizeSlider = this.createSlider(1, 100, si, function() {
+                const value = parseInt(this.value);
+                eD['si'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{si:value}}]}));
+            });
+            parent.appendChild(sizeSlider);
+
+            const densityText = document.createElement('label');
+            densityText.innerHTML = 'Density:';
+            parent.appendChild(densityText);
+
+            const densitySlider = this.createSlider(1, 100, d, function() {
+                const value = parseInt(this.value) / 100.0;
+                eD['d'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{d:value}}]}));
+            });
+            parent.appendChild(densitySlider);
+
+            const offsetText = document.createElement('label');
+            offsetText.innerHTML = 'Offset:';
+            parent.appendChild(offsetText);
+
+            const offsetSlider = this.createSlider(1, 100, o, function() {
+                const value = parseInt(this.value);
+                eD['o'] = value;
+                ws.send(JSON.stringify({vds:[{id:self.id,eD:{o:value}}]}));
+            });
+            parent.appendChild(offsetSlider);
+        } else if (eId == 106) {
             const si = eD['si'] || 5;
 
             const sizeText = document.createElement('label');

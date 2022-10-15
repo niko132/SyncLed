@@ -12,6 +12,7 @@
 #include "src/effects/Receive.h"
 #include "src/effects/Receive2D.h"
 #include "src/effects/RandomDots.h"
+#include "src/effects/RandomPattern.h"
 #include "src/effects/Blink.h"
 #include "src/effects/Wipe.h"
 #include "src/effects/Shift.h"
@@ -62,6 +63,9 @@ Effect* ESPEffectManager::getEffectById(unsigned long id) {
             break;
         case EFFECT_RANDOM_DOTS:
             effect = new RandomDots();
+            break;
+        case EFFECT_RANDOM_PATTERN:
+            effect = new RandomPattern();
             break;
         case EFFECT_BLINK:
             effect = new Blink();
