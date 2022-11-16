@@ -1,8 +1,8 @@
 #ifndef SPARKLE_FILL_H
 #define SPARKLE_FILL_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 class SparkleFill : public SimulationEffect {
     private:

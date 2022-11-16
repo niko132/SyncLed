@@ -1,8 +1,8 @@
 #ifndef RANDOM_DOTS_H
 #define RANDOM_DOTS_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 struct rd_dot_list_t {
     uint32_t color;

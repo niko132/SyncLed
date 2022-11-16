@@ -1,9 +1,9 @@
 #ifndef FIREWORK_H
 #define FIREWORK_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 struct sparkle_t {
     uint32_t color;

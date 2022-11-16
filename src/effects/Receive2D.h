@@ -1,8 +1,8 @@
 #ifndef RECEIVE_2D_H
 #define RECEIVE_2D_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 #include "ESPAsyncUDP.h"
 

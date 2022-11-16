@@ -4,7 +4,7 @@
 #include "ConnectivityManager.h"
 #include "Utils.h"
 
-ESPTimeManager::ESPTimeManager() : _timeClient(_ntpUdp, "pool.ntp.org", 2 * 3600, 1 * 60 * 60 * 1000) {
+ESPTimeManager::ESPTimeManager() : _timeClient(_ntpUdp, "pool.ntp.org", 1 * 3600, 1 * 60 * 60 * 1000) {
 
 }
 

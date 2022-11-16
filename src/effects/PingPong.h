@@ -1,9 +1,9 @@
 #ifndef PING_PONG_H
 #define PING_PONG_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 class PingPong : public CyclicEffect {
     private:

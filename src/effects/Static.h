@@ -1,8 +1,8 @@
 #ifndef STATIC_H
 #define STATIC_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 class Static : public CyclicEffect {
     public:

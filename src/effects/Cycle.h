@@ -1,9 +1,9 @@
 #ifndef CYCLE_H
 #define CYCLE_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 class Cycle : public CyclicEffect {
     public:

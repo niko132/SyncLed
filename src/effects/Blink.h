@@ -1,8 +1,8 @@
 #ifndef BLINK_H
 #define BLINK_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 class Blink : public CyclicEffect {
     private:

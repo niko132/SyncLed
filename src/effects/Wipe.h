@@ -1,8 +1,8 @@
 #ifndef WIPE_H
 #define WIPE_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 class Wipe : public CyclicEffect {
     private:

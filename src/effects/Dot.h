@@ -1,9 +1,9 @@
 #ifndef DOT_H
 #define DOT_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 class Dot : public CyclicEffect {
     private:

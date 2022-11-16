@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <arduino.h>
+#include <Arduino.h>
 #include <NeoPixelBus.h>
 
 #include <ArduinoJson.h>

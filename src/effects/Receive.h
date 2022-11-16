@@ -1,8 +1,8 @@
 #ifndef RECEIVE_H
 #define RECEIVE_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 #include "ESPAsyncUDP.h"
 

@@ -1,9 +1,9 @@
 #ifndef FIREWORK_2D_H
 #define FIREWORK_2D_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 struct sparkle_2d_t {
     uint32_t color;

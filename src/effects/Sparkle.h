@@ -1,9 +1,9 @@
 #ifndef SPARKLE_H
 #define SPARKLE_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
-#include "../../Utils.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
+#include "../Utils.h"
 
 class Sparkle : public SimulationEffect {
     private:

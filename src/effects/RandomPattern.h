@@ -1,8 +1,8 @@
 #ifndef RANDOM_PATTERN_H
 #define RANDOM_PATTERN_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 struct rp_dot_list_t {
     uint32_t colorFrom;

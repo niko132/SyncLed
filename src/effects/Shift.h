@@ -1,8 +1,8 @@
 #ifndef SHIFT_H
 #define SHIFT_H
 
-#include "../../Effect.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../EffectManager.h"
 
 class Shift : public CyclicEffect {
     private:

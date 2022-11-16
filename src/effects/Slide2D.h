@@ -1,10 +1,10 @@
 #ifndef SLIDE_2D_H
 #define SLIDE_2D_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
-#include "../../TimeManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
+#include "../TimeManager.h"
 
 class Slide2D : public CyclicEffect2D {
     private:

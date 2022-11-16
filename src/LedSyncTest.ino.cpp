@@ -18,7 +18,7 @@
 #include "WebManager.h"
 #include "OverlayManager.h"
 
-#include "WiFiManager.h"
+#include "WifiManager.h"
 
 #include "Alexa.h"
 

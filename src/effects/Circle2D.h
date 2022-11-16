@@ -1,9 +1,9 @@
 #ifndef CIRCLE_2D_H
 #define CIRCLE_2D_H
 
-#include "../../Effect.h"
-#include "../../Utils.h"
-#include "../../EffectManager.h"
+#include "../Effect.h"
+#include "../Utils.h"
+#include "../EffectManager.h"
 
 class Circle2D : public CyclicEffect2D {
     public:

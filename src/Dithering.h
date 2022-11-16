@@ -1,6 +1,8 @@
 #ifndef DITHERING_H
 #define DITHERING_H
 
+#include <NeoPixelBus.h>
+
 // TODO: convert to class
 // TODO: use it
 
