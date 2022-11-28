@@ -37,6 +37,8 @@ class ESPVirtualDeviceManager {
 
         bool _useBrightnessCorrection = false;
 
+        String _deviceName;
+
         bool _useBrightnessControl = false;
 
         size_t _numBrightnessControlEntries = 0;
@@ -54,6 +56,8 @@ class ESPVirtualDeviceManager {
         void fadeOut();
 
         void setOn(bool on);
+
+        String getDeviceName();
 
         void fromJson(JsonObject &root);
         void toJson(JsonObject &root);

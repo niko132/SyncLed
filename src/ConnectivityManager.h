@@ -23,7 +23,12 @@ namespace std {
     };
 }
 
-typedef std::map<IPAddress, unsigned long> act_dev_map;
+struct ActiveDevice {
+	String deviceName;
+	unsigned long lastSeenMillis;
+};
+
+typedef std::map<IPAddress, ActiveDevice*> act_dev_map;
 typedef act_dev_map::iterator act_dev_map_itr;
 
 class ESPConnectivityManager {

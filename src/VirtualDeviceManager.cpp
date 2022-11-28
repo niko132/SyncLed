@@ -145,6 +145,10 @@ void ESPVirtualDeviceManager::setOn(bool on) {
     }
 }
 
+String ESPVirtualDeviceManager::getDeviceName() {
+    return _deviceName;
+}
+
 void ESPVirtualDeviceManager::fromJson(JsonObject &root) {
     JsonArray vdIds = root["vdIds"];
     JsonArray vds = root["vds"];
@@ -212,6 +216,9 @@ void ESPVirtualDeviceManager::fromJson(JsonObject &root) {
     }
 
 
+    _deviceName = root["dn"] | _deviceName;
+
+
     _useBrightnessControl = root["briCtrl"] | _useBrightnessControl;
     JsonArray brightnessControls = root["briCtrls"];
 
@@ -254,6 +261,8 @@ void ESPVirtualDeviceManager::toJson(JsonObject &root) {
     }
 
     root["nLeds"] = LED_COUNT;
+    root["dn"] = _deviceName;
+    root["oip"] = WiFi.localIP().toString();
     root["briCtrl"] = _useBrightnessControl;
 
     JsonArray brightnessControls = root.createNestedArray("briCtrls");

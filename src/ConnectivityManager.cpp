@@ -3,6 +3,7 @@
 #include "NetworkManager.h"
 #include "TimeManager.h"
 #include "WebManager.h"
+#include "VirtualDeviceManager.h"
 
 void ESPConnectivityManager::begin() {
 	_lastHeartbeatMillis = millis() - HEARTBEAT_INTERVAL;
@@ -41,16 +42,25 @@ bool ESPConnectivityManager::handlePacket(Reader &reader, IPAddress ip, unsigned
 	if (subType == SUBTYPE_HEARTBEAT_REQUEST) {
 		sendHeartbeat();
 	} else if (subType == SUBTYPE_HEARTBEAT_RESPONSE) {
-		bool newDevice = false;
+		String deviceName;
+		reader.read(deviceName);
 
-		if (!_activeDevices.count(ip)) {
-			Serial.println("New Device");
-			newDevice = true;
-		}
+		if (_activeDevices.count(ip)) {
+			_activeDevices[ip]->lastSeenMillis = millis();
+			if (_activeDevices[ip]->deviceName != deviceName) {
+				_activeDevices[ip]->deviceName = deviceName;
+				sendDevices();
+			}
+		} else {
+			Serial.print("New Device ");
+			Serial.print(ip.toString());
+			Serial.print(" ");
+			Serial.println(deviceName);
 
-		_activeDevices[ip] = millis();
-
-		if (newDevice) {
+			ActiveDevice* activeDevice = new ActiveDevice();
+			activeDevice->deviceName = deviceName;
+			activeDevice->lastSeenMillis = millis();
+			_activeDevices[ip] = activeDevice;
 			sendDevices();
 		}
 	} else {
@@ -78,6 +88,7 @@ void ESPConnectivityManager::sendHeartbeat() {
 	writer.write(type);
 	uint8_t subType = SUBTYPE_HEARTBEAT_RESPONSE;
 	writer.write(subType);
+	writer.write(VirtualDeviceManager.getDeviceName());
 
 	NetworkManager.broadcast(writer.getData(), writer.getLength());
 }
@@ -88,15 +99,15 @@ void ESPConnectivityManager::removeInactive() {
 	bool deleted = false;
 
 	while(it != _activeDevices.end()) {
-		std::map<IPAddress, unsigned long>::iterator current = it++;
+		act_dev_map_itr current = it++;
 
-		if (now - current->second > 2.5 * HEARTBEAT_INTERVAL) {
+		if (now - current->second->lastSeenMillis > 2.5 * HEARTBEAT_INTERVAL) {
 			_activeDevices.erase(current);
 			Serial.print(current->first);
 			Serial.print(" off (");
-      		Serial.print(now - current->second);
+      		Serial.print(now - current->second->lastSeenMillis);
       		Serial.println("ms)");
-
+			delete (current->second);
 			deleted = true;
 		}
 	}
@@ -122,7 +133,11 @@ void ESPConnectivityManager::toJson(JsonObject &root) {
 
 	for (act_dev_map_itr it = _activeDevices.begin(); it != _activeDevices.end(); it++) {
 		IPAddress ip = it->first;
-		actDevArray.add(ip.toString());
+		String deviceName = it->second->deviceName;
+
+		JsonObject actDevObj = actDevArray.createNestedObject();
+		actDevObj["ip"] = ip.toString();
+		actDevObj["n"] = deviceName;
 	}
 }
 

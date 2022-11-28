@@ -4,7 +4,7 @@ const EFFECT_NAMES = ['Static', 'Fade', 'Cycle', 'Dot', 'PingPong', 'Circle2D', 
 var PALETTE_IDS = [];
 var PALETTE_NAMES = [];
 
-const host = window.location.hostname || '192.168.3.11';
+const host = window.location.hostname || '192.168.3.8';
 var ws;
 
 var currentCfg = {};
@@ -978,12 +978,14 @@ class PresetComponent extends ExpandableComponent {
         super(id, parent, PresetComponent.EVENT_NAME, PresetComponent.IDS_KEY, PresetComponent.DATA_KEY);
         this.activeDevicesListener = this.updateUI.bind(this);
         events.addEventListener(EVENT_ACTIVE_DEVICES_CHANGED, this.activeDevicesListener);
+        events.addEventListener(this.EVENT_SETTINGS_CHANGED, this.activeDevicesListener);
         this.expanded = false;
     };
 
     destroy() {
         super.destroy();
         events.removeEventListener(EVENT_ACTIVE_DEVICES_CHANGED, this.activeDevicesListener);
+        events.removeEventListener(this.EVENT_SETTINGS_CHANGED, this.activeDevicesListener);
     };
 
     getComponentId() {
@@ -997,12 +999,19 @@ class PresetComponent extends ExpandableComponent {
         }
 
         let ea = cfg['eA'] || false;
-        let activeIps = currentCfg['actDev'] || [];
-        let remainingIPs = [];
+        let activeDevices = [...currentCfg['actDev'] || []]; // create a deep copy
+        if (currentCfg['oip']) {
+            activeDevices.push({ip: currentCfg['oip'], n: currentCfg['dn'] || ''});
+        }
 
-        for (let ip of activeIps) {
-            if (!(cfg['ips'] || []).includes(ip)) {
-                remainingIPs.push(ip);
+        let selectedDevices = [];
+        let remainingDevices = [];
+
+        for (let device of activeDevices) {
+            if ((cfg['ips'] || []).includes(device.ip)) {
+                selectedDevices.push(device);
+            } else {
+                remainingDevices.push(device);
             }
         }
 
@@ -1020,18 +1029,18 @@ class PresetComponent extends ExpandableComponent {
                         <label for="enable-alexa-checkbox">Alexa</label>
                     </div>
                     <div>
-                        <div class="active-ip-list">
-                            ${(cfg['ips'] || []).map(ip => `
+                        <div class="active-device-list">
+                            ${selectedDevices.map(device => `
                                 <div class="list-item">
-                                    <span class="list-item-text">${ip}</span>
+                                    <span class="list-item-text" data-ip="${device.ip}"><b>${device.n}</b> (${device.ip})</span>
                                     <button class="list-item-delete-btn">x</button>
                                 </div>`).join('')}
                         </div>
-                        <div class="expandable-container remaining-ip-list">
+                        <div class="expandable-container remaining-device-list">
                             <div class="divider"></div>
-                            ${remainingIPs.map(ip => `
+                            ${remainingDevices.map(device => `
                                 <div class="list-item">
-                                    <span class="list-item-text">${ip}</span>
+                                    <span class="list-item-text" data-ip="${device.ip}"><b>${device.n}</b> (${device.ip})</span>
                                     <button class="list-item-add-btn">+</button>
                                 </div>`).join('')}
                         </div>
@@ -1050,15 +1059,15 @@ class PresetComponent extends ExpandableComponent {
         this.editBtn = this.root.getElementsByClassName('edit-btn')[0];
         this.deleteBtn = this.root.getElementsByClassName('delete-btn')[0];
         this.alexaCheckbox = document.getElementById('enable-alexa-checkbox');
-        this.activeIpList = this.root.getElementsByClassName('active-ip-list')[0];
-        this.remainingIpList = this.root.getElementsByClassName('remaining-ip-list')[0];
+        this.activeDeviceList = this.root.getElementsByClassName('active-device-list')[0];
+        this.remainingDeviceList = this.root.getElementsByClassName('remaining-device-list')[0];
         this.expandCheckbox = this.root.getElementsByClassName('expand-checkbox')[0];
         this.useBtn = this.root.getElementsByClassName('use-btn')[0];
 
         var self = this;
         this.setNameEditElememts(this.nameInput, this.editBtn);
         this.setDeleteElement(this.deleteBtn);
-        this.setExpandableElements(this.remainingIpList, this.expandCheckbox);
+        this.setExpandableElements(this.remainingDeviceList, this.expandCheckbox);
 
         this.alexaCheckbox.checked = ea;
         this.alexaCheckbox.onchange = function() {
@@ -1066,8 +1075,8 @@ class PresetComponent extends ExpandableComponent {
             ws.send(JSON.stringify({prsts:[{id:self.id,eA:value}]}));
         };
 
-        for (let listItem of this.activeIpList.getElementsByClassName('list-item')) {
-            let ip = listItem.getElementsByClassName('list-item-text')[0].innerHTML;
+        for (let listItem of this.activeDeviceList.getElementsByClassName('list-item')) {
+            let ip = listItem.getElementsByClassName('list-item-text')[0].dataset.ip;
             let deleteBtn = listItem.getElementsByClassName('list-item-delete-btn')[0];
 
             deleteBtn.onclick = function() {
@@ -1084,8 +1093,8 @@ class PresetComponent extends ExpandableComponent {
         }
 
 
-        for (let listItem of this.remainingIpList.getElementsByClassName('list-item')) {
-            let ip = listItem.getElementsByClassName('list-item-text')[0].innerHTML;
+        for (let listItem of this.remainingDeviceList.getElementsByClassName('list-item')) {
+            let ip = listItem.getElementsByClassName('list-item-text')[0].dataset.ip;
             let addBtn = listItem.getElementsByClassName('list-item-add-btn')[0];
 
             addBtn.onclick = function() {
@@ -1304,18 +1313,23 @@ function initOverlay() {
 
 function initSettings() {
     let numLedsInput = document.getElementById('settings-num-leds');
-
     let numLedsChanged = function() {
         let numLeds = parseInt(this.value);
         ws.send(JSON.stringify({nLeds:numLeds}));
     }
-
     numLedsInput.addEventListener('focusout', numLedsChanged);
     numLedsInput.onChange = numLedsChanged;
 
+    let deviceNameInput = document.getElementById('settings-device-name');
+    let deviceNameChanged = function() {
+        let deviceName = this.value;
+        console.log('Device name changed: ' + deviceName);
+        ws.send(JSON.stringify({dn:deviceName}));
+    }
+    deviceNameInput.addEventListener('focusout', deviceNameChanged);
+    deviceNameInput.onchange = deviceNameChanged;
 
     let alexaNameInput = document.getElementById('settings-alexa-name');
-
     let alexaNameChanged = function() {
         let alexaName = this.value;
 
@@ -1323,7 +1337,6 @@ function initSettings() {
 
         ws.send(JSON.stringify({an:alexaName}));
     }
-
     alexaNameInput.addEventListener('focusout', alexaNameChanged);
     alexaNameInput.onchange = alexaNameChanged;
 
@@ -1508,6 +1521,7 @@ function initSettings() {
     }
 
     events.addEventListener(this.EVENT_SETTINGS_CHANGED, function() {
+        deviceNameInput.value = currentCfg['dn'] || '';
         alexaNameInput.value = currentCfg['an'] || '';
 
         useBriControlCheckbox.checked = currentCfg['briCtrl'];
@@ -1559,6 +1573,8 @@ function init() {
 
         const nLeds = cfg['nLeds'] || 0;
 
+        const oip = cfg['oip'] || host; // TODO
+        const dn = cfg['dn'] || '';
         const an = cfg['an'] || '';
 
         const briCtrl = cfg['briCtrl'] || false;
@@ -1612,6 +1628,16 @@ function init() {
         if (nLeds) {
             currentCfg['nLeds'] = nLeds;
             events.dispatchEvent(new Event(EVENT_VIRTUAL_DEVICES_CHANGED)); // need to update indices
+        }
+
+        if (oip) {
+            currentCfg['oip'] = oip;
+            events.dispatchEvent(new Event(this.EVENT_SETTINGS_CHANGED));
+        }
+
+        if (dn) {
+            currentCfg['dn'] = dn;
+            events.dispatchEvent(new Event(this.EVENT_SETTINGS_CHANGED));
         }
 
         if (an) {
