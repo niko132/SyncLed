@@ -8,7 +8,7 @@ struct rp_dot_list_t {
     uint32_t colorFrom;
     uint32_t colorTo;
     uint32_t colorCurr;
-    size_t pos;
+    ssize_t pos;
     int size;
     unsigned long lifetime;
     unsigned long maxLifetime;
@@ -52,9 +52,13 @@ class RandomPattern : public SimulationEffect {
         }
 
         void simulate(uint8_t *leds, size_t count, Palette *palette, unsigned long dTime) {
+            ssize_t sCount = (ssize_t)count;
+
+            // TODO: still no optimal solution - reinvestigate
+
             size_t dotSum = 0;
             for (rp_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
-                dotSum += it->size;
+                dotSum += min(it->pos + it->size, sCount) - max(it->pos, (ssize_t)0); // there might be dots outside of the range
             }
 
             float density = (float)dotSum / count;
@@ -67,16 +71,17 @@ class RandomPattern : public SimulationEffect {
                 }
 
                 for (rp_dot_list_t *it = _dots.next; it != NULL; it = it->next) {
-                    for (int i = 0; i < it->size && it->pos + i < count; i++) {
-                        occupied[it->pos + i] = true;
+                    for (int i = 0; i < it->size; i++) {
+                        if (it->pos + i >= 0 && it->pos + i < sCount)
+                            occupied[it->pos + i] = true;
                     }
                 }
 
-                std::vector<size_t> freePos;
-                for (size_t i = _offset; i < count; i += (int)(_size / _density)) {
+                std::vector<ssize_t> freePos;
+                for (ssize_t i = _offset - (int)(_size / _density); i < sCount; i += (int)(_size / _density)) {
                     bool canSpawn = true;
                     for (int j = 0; j < _size; j++) {
-                        if (occupied[i + j] || i + j >= count) {
+                        if (i + j >= 0 && i + j < sCount && occupied[i + j]) {
                             canSpawn = false;
                             break;
                         }
@@ -89,7 +94,7 @@ class RandomPattern : public SimulationEffect {
 
                 if (!freePos.empty()) {
                     size_t randPickIdx = millis() % freePos.size();
-                    size_t pos = freePos[randPickIdx];
+                    ssize_t pos = freePos[randPickIdx];
 
                     RgbColor color1 = palette->getColorAtPosition(random(100) / 100.0f);
                     RgbColor color2 = palette->getColorAtPosition(random(100) / 100.0f);
@@ -150,9 +155,11 @@ class RandomPattern : public SimulationEffect {
                 RgbColor rgb = colorToRgbColor(it->colorCurr);
 
                 for (int i = 0; i < it->size; i++) {
-                    leds[(it->pos + i) * 3] = rgb.R;
-                    leds[(it->pos + i) * 3 + 1] = rgb.G;
-                    leds[(it->pos + i) * 3 + 2] = rgb.B;
+                    if (it->pos + i >= 0 && it->pos + i < sCount) {
+                        leds[(it->pos + i) * 3] = rgb.R;
+                        leds[(it->pos + i) * 3 + 1] = rgb.G;
+                        leds[(it->pos + i) * 3 + 2] = rgb.B;
+                    }
                 }
             }
         };
