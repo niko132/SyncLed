@@ -1,0 +1,31 @@
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Prepare build
+      uses: ./.github/actions/prepare-build
+      with:
+        wifi_ssid: ${{ secrets.REMOTE_WIFI_SSID }}
+        wifi_password: ${{ secrets.REMOTE_WIFI_PASSWORD }}
+    - name: Build Project
+      run: platformio run
+
+  remote-test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Prepare build
+      uses: ./.github/actions/prepare-build
+      with:
+        wifi_ssid: ${{ secrets.REMOTE_WIFI_SSID }}
+        wifi_password: ${{ secrets.REMOTE_WIFI_PASSWORD }}
+    - name: Run tests on the embedded target
+      env:
+        PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
+      run: platformio remote test -e test -vvv

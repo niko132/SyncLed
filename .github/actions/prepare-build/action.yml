@@ -1,0 +1,32 @@
+name: "Prepare PlatformIO build"
+description: "Installs dependencies and creates files to prepare the PlatformIO build"
+
+inputs:
+  wifi_ssid:
+    description: "The WiFi SSID"
+    required: true
+  wifi_password:
+    description: "The WiFi Password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create Secrets file
+      uses: "DamianReeves/write-file-action@master"
+      with:
+        path: src/secrets.h
+        write-mode: overwrite
+        contents: |
+          #ifndef SECRETS_H
+          #define SECRETS_H
+          #define WIFI_SSID "${{ inputs.wifi_ssid }}"
+          #define WIFI_PASS "${{ inputs.wifi_ssid }}"
+          #endif
+    - name: Set up Python
+      uses: actions/setup-python@v1
+    - name: Install PlatformIO
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U platformio
