@@ -434,6 +434,10 @@ h2 {
     margin: 20px;
 }
 
+.cycle-duration-slider-container {
+    padding: 0 24px 24px;
+}
+
 
 
 .chip-container {

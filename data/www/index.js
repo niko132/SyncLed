@@ -185,6 +185,56 @@ class Component {
         }
         return cfg[key];
     };
+
+    createSlider(min, max, current, oninput) {
+        var element = document.createElement('span');
+        element.style.position = 'relative';
+
+        const output = document.createElement('output');
+        output.classList.add('slider-output');
+
+        const adjustBackground = function(val) {
+            const perc = (val - min) / (max - min) * 100;
+
+            const sliderWidth = slider.offsetWidth;
+            const thumbWidth = slider.offsetHeight * 2; // TODO: fineadjust
+            const pos = thumbWidth / 2.0 / sliderWidth * 100 + perc * (sliderWidth - thumbWidth) / sliderWidth;
+
+            slider.style.background = `linear-gradient(to right, #c6bcbf ${pos}%, #0008 ${pos}%)`;
+
+
+            const bubbleWidth = output.offsetWidth;
+            const pos1 = -bubbleWidth / 2.0 + pos / 100.0 * sliderWidth;
+            output.style.left = `${pos1}px`;
+            output.innerHTML = `<span>${val}</span>`;
+        };
+
+        var slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = min;
+        slider.max = max;
+        slider.value = current;
+        slider.onchange = oninput;
+        slider.oninput = function() {
+            var val = parseInt(slider.value);
+            adjustBackground(val);
+        };
+        slider.classList.add('def-slider');
+        element.appendChild(slider);
+
+        element.appendChild(output);
+
+        // needed to init background
+        new ResizeObserver(function() {
+            adjustBackground(slider.value);
+        }).observe(slider);
+        new ResizeObserver(function() {
+            adjustBackground(slider.value);
+        }).observe(output);
+
+
+        return element;
+    };
 };
 
 class ExpandableComponent extends Component {
@@ -659,56 +709,6 @@ class VirtualDeviceComponent extends Component {
         }
     };
 
-    createSlider(min, max, current, oninput) {
-        var element = document.createElement('span');
-        element.style.position = 'relative';
-
-        const output = document.createElement('output');
-        output.classList.add('slider-output');
-
-        const adjustBackground = function(val) {
-            const perc = (val - min) / (max - min) * 100;
-
-            const sliderWidth = slider.offsetWidth;
-            const thumbWidth = slider.offsetHeight * 2; // TODO: fineadjust
-            const pos = thumbWidth / 2.0 / sliderWidth * 100 + perc * (sliderWidth - thumbWidth) / sliderWidth;
-
-            slider.style.background = `linear-gradient(to right, #c6bcbf ${pos}%, #0008 ${pos}%)`;
-
-
-            const bubbleWidth = output.offsetWidth;
-            const pos1 = -bubbleWidth / 2.0 + pos / 100.0 * sliderWidth;
-            output.style.left = `${pos1}px`;
-            output.innerHTML = `<span>${val}</span>`;
-        };
-
-        var slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = min;
-        slider.max = max;
-        slider.value = current;
-        slider.onchange = oninput;
-        slider.oninput = function() {
-            var val = parseInt(slider.value);
-            adjustBackground(val);
-        };
-        slider.classList.add('def-slider');
-        element.appendChild(slider);
-
-        element.appendChild(output);
-
-        // needed to init background
-        new ResizeObserver(function() {
-            adjustBackground(slider.value);
-        }).observe(slider);
-        new ResizeObserver(function() {
-            adjustBackground(slider.value);
-        }).observe(output);
-
-
-        return element;
-    };
-
     createEffectDualSlider(min, max, current1, current2, oninput1, oninput2) {
         var element = document.createElement('span');
         element.classList.add('multi-range');
@@ -1154,6 +1154,9 @@ class PlaylistComponent extends ExpandableComponent {
                     <button class="delete-btn"></button>
                 </div>
                 <div class="card-body">
+                    <div class="cycle-duration-slider-container">
+
+                    </div>
                     <div>
                         <div class="active-preset-list">
                             ${(cfg['pIds'] || []).map(pId => `
@@ -1189,11 +1192,25 @@ class PlaylistComponent extends ExpandableComponent {
         this.remainingPresetList = this.root.getElementsByClassName('remaining-preset-list')[0];
         this.expandCheckbox = this.root.getElementsByClassName('expand-checkbox')[0];
         this.useBtn = this.root.getElementsByClassName('use-btn')[0];
+        this.cycleDurationSliderContainer = this.root.getElementsByClassName('cycle-duration-slider-container')[0];
 
         var self = this;
         this.setNameEditElememts(this.nameInput, this.editBtn);
         this.setDeleteElement(this.deleteBtn);
         this.setExpandableElements(this.remainingPresetList, this.expandCheckbox);
+
+
+        const cycleDurationText = document.createElement('label');
+        cycleDurationText.innerHTML = 'Cycle Duration:';
+        this.cycleDurationSliderContainer.appendChild(cycleDurationText);
+
+        const cycleDurationSlider = this.createSlider(1, 3600, 10, function() {
+            const value = parseInt(this.value) * 1000;
+            ws.send(JSON.stringify({pllsts:[{id:self.id,cm:value}]}));
+            self.updateUI();
+        });
+        this.cycleDurationSliderContainer.appendChild(cycleDurationSlider);
+
 
 
         for (let listItem of this.activePresetList.getElementsByClassName('list-item')) {
