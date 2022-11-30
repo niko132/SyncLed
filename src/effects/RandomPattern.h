@@ -32,7 +32,16 @@ class RandomPattern : public SimulationEffect {
         }
 
         ~RandomPattern() {
+            rp_dot_list_t* it = _dots.next;
+            while(it != NULL) {
+                rp_dot_list_t* tmp = it;
+                it = it->next;
 
+                // delete tmp
+                delete tmp;
+                tmp = NULL;
+            }
+            _dots.next = NULL;
         }
 
         void init(size_t oldLedCount, size_t newLedCount) {
