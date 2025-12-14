@@ -3,6 +3,7 @@
 
 #include "ESPAsyncTCP.h"
 #include "ESPAsyncWebServer.h"
+#include "AsyncJson.h"
 
 class ESPWebManager {
     private:

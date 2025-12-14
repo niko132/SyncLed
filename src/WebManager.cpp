@@ -78,11 +78,61 @@ void ESPWebManager::begin() {
         request->redirect(redirectUrl);
     });
 
+    _server.on("/api/state", HTTP_GET, [](AsyncWebServerRequest *request) {
+        DynamicJsonDocument response(128);
+        response["on"] = VirtualDeviceManager.isOn();
+        response["brightness"] = VirtualDeviceManager.getBrightness();
+
+        String out;
+        serializeJson(response, out);
+
+        request->send(200, "application/json", out);
+    });
+
+    AsyncCallbackJsonWebHandler* stateHandler =
+    new AsyncCallbackJsonWebHandler(
+        "/api/state",
+        [](AsyncWebServerRequest* request, JsonVariant& json) {
+
+        // Ensure JSON object
+        if (!json.is<JsonObject>()) {
+            request->send(400, "application/json", "{\"error\":\"invalid_json\"}");
+            return;
+        }
+
+        JsonObject obj = json.as<JsonObject>();
+
+        // Apply updates (partial updates allowed)
+        if (obj.containsKey("on")) {
+            VirtualDeviceManager.setOn(obj["on"].as<bool>());
+        }
+
+        if (obj.containsKey("brightness")) {
+            VirtualDeviceManager.setBrightness(obj["brightness"].as<uint8_t>());
+        }
+
+        // Build response JSON with CURRENT state
+        DynamicJsonDocument response(128);
+        response["on"] = VirtualDeviceManager.isOn();
+        response["brightness"] = VirtualDeviceManager.getBrightness();
+
+        String out;
+        serializeJson(response, out);
+
+        request->send(200, "application/json", out);
+        }
+    );
+
+    // Allow POST and PUT
+    stateHandler->setMethod(HTTP_POST | HTTP_PUT);
+
+    _server.addHandler(stateHandler);
+
     // add all websocket handlers
     _ws.onEvent(std::bind(&ESPWebManager::onWSEvent, this, _1, _2, _3, _4, _5, _6));
     _server.addHandler(&_ws);
 
-    _wifiConfigWs.onEvent(std::bind(&ESPWifiManager::onWSEvent, WifiManager, _1, _2, _3, _4, _5, _6));
+    _wifiConfigWs.onEvent(std::bind(&ESPWifiManager::onWSEvent, &WifiManager, _1, _2, _3, _4, _5, _6));
     _server.addHandler(&_wifiConfigWs);
 
     _server.addHandler(&_liveDataWs);

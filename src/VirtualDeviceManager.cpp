@@ -137,11 +137,34 @@ void ESPVirtualDeviceManager::fadeOut() {
     _state = FADE_OUT;
 }
 
+bool ESPVirtualDeviceManager::isOn() {
+    return _state != OFF;
+}
+
 void ESPVirtualDeviceManager::setOn(bool on) {
     if (on) {
         fadeIn();
     } else {
         fadeOut();
+    }
+}
+
+uint8_t ESPVirtualDeviceManager::getBrightness() {
+    uint8_t brightness = 0;
+    for (vd_map_itr it = VirtualDeviceManager.vdBegin(); it != VirtualDeviceManager.vdEnd(); it++) {
+        VirtualDevice *vd = it->second;
+        uint8_t vdBri = vd->getBrightness();
+        if (vdBri > brightness) {
+            brightness = vdBri;
+        }
+    }
+    return brightness;
+}
+
+void ESPVirtualDeviceManager::setBrightness(uint8_t brightness) {
+    for (vd_map_itr it = VirtualDeviceManager.vdBegin(); it != VirtualDeviceManager.vdEnd(); it++) {
+        VirtualDevice *vd = it->second;
+        vd->setBrightness(brightness);
     }
 }
 

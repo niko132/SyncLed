@@ -55,7 +55,11 @@ class ESPVirtualDeviceManager {
         void fadeIn();
         void fadeOut();
 
+        bool isOn();
         void setOn(bool on);
+
+        uint8_t getBrightness();
+        void setBrightness(uint8_t brightness);
 
         String getDeviceName();
 
